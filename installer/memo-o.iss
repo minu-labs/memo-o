@@ -2,7 +2,7 @@
 ; build.ps1 이 dist\memo-o 를 만든 뒤 컴파일한다.
 
 #define AppName "MemoO"
-#define AppVersion "1.0.0"
+#define AppVersion "0.1.0"
 #define AppExe "memo-o.exe"
 #define AppURL "https://minulog.com"
 
