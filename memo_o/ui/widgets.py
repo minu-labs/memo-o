@@ -14,6 +14,7 @@ class TitleBar(QFrame):
 
     back_clicked = Signal()
     menu_clicked = Signal()
+    record_indicator_clicked = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,6 +34,15 @@ class TitleBar(QFrame):
         self.back.hide()
         lay.addWidget(self.title, 1)
         lay.addWidget(self.back, 1)
+
+        self.rec_indicator = QPushButton()
+        self.rec_indicator.setObjectName("RecIndicator")
+        self.rec_indicator.setCursor(Qt.PointingHandCursor)
+        self.rec_indicator.setToolTip("녹음 화면으로 돌아가기")
+        self.rec_indicator.setFocusPolicy(Qt.NoFocus)
+        self.rec_indicator.clicked.connect(self.record_indicator_clicked)
+        self.rec_indicator.hide()
+        lay.addWidget(self.rec_indicator)
 
         self.menu_btn = self._btn("⋯", "MenuBtn", "메뉴")
         self.menu_btn.setStyleSheet("font-size: 14px;")
@@ -63,6 +73,12 @@ class TitleBar(QFrame):
         self.back.show()
         self.back.setText(f"←  {text}")
         self.back.setToolTip(text)
+
+    def set_recording_active(self, active: bool) -> None:
+        self.rec_indicator.setVisible(active)
+
+    def set_recording_time(self, text: str) -> None:
+        self.rec_indicator.setText(f"●  {text}")
 
     def toggle_max(self) -> None:
         w = self.window()

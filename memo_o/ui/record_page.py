@@ -211,5 +211,6 @@ class RecordPage:
         if not self.recorder:
             return
         self.time_lbl.setText(f"시간: <b>{fmt_hms(self.recorder.elapsed)}</b>")
+        self.ctx.update_recording_time(self.recorder.elapsed)
         if self.recorder.failed:
             self.stop(ask_title=False)

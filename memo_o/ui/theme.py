@@ -45,6 +45,12 @@ QWidget#Page {{ background: {BG}; }}
     text-align: left; padding: 0;
 }}
 #TitleBar QPushButton#BackBtn:hover {{ background: transparent; color: #CFE4F7; }}
+#TitleBar QPushButton#RecIndicator {{
+    min-width: 0; max-width: 16777215; min-height: 20px; max-height: 20px;
+    background: {RED}; color: #FFFFFF; font-size: 11px; font-weight: 600;
+    border-radius: 10px; padding: 0 10px; margin: 0 8px;
+}}
+#TitleBar QPushButton#RecIndicator:hover {{ background: #B92B2E; }}
 
 QFrame#Card {{ background: {CARD}; border: 1px solid {BORDER}; border-radius: 8px; }}
 QFrame#CardHeader {{ border: none; border-bottom: 1px solid {DIVIDER}; background: transparent; }}

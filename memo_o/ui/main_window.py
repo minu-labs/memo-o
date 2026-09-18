@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..db import Database
+from ..export import fmt_hms
 from ..paths import data_dir
 from ..transcription import TranscriptionService
 from . import theme
@@ -36,6 +37,7 @@ class MainWindow(QWidget):
         self.title_bar = TitleBar(self)
         self.title_bar.back_clicked.connect(self.open_list)
         self.title_bar.menu_clicked.connect(self._show_menu)
+        self.title_bar.record_indicator_clicked.connect(self.open_main)
         lay.addWidget(self.title_bar)
 
         self.stack = QStackedWidget()
@@ -101,8 +103,14 @@ class MainWindow(QWidget):
         else:
             self.setWindowTitle(self.current.title() or "MemoO")
 
-    def recording_state_changed(self, _recording: bool) -> None:
+    def recording_state_changed(self, recording: bool) -> None:
+        self.title_bar.set_recording_active(recording)
+        if recording:
+            self.title_bar.set_recording_time(fmt_hms(0))
         self.update_title()
+
+    def update_recording_time(self, elapsed: float) -> None:
+        self.title_bar.set_recording_time(fmt_hms(elapsed))
 
     def toast(self, msg: str, ms: int = 2000) -> None:
         self._toast.setText(msg)

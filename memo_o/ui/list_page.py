@@ -31,12 +31,12 @@ class ListPage:
         self.search = QLineEdit()
         self.search.setPlaceholderText("검색 (제목, 내용)")
         self.search.setClearButtonEnabled(True)
-        new_btn = QPushButton("+ 새 녹음")
-        new_btn.setObjectName("Primary")
-        new_btn.setCursor(Qt.PointingHandCursor)
-        new_btn.clicked.connect(ctx.open_main)
+        self.new_btn = QPushButton("+ 새 녹음")
+        self.new_btn.setObjectName("Primary")
+        self.new_btn.setCursor(Qt.PointingHandCursor)
+        self.new_btn.clicked.connect(ctx.open_main)
         sl.addWidget(self.search, 1)
-        sl.addWidget(new_btn)
+        sl.addWidget(self.new_btn)
         root.addWidget(strip)
 
         self.debounce = QTimer(w)
@@ -93,7 +93,15 @@ class ListPage:
         self.page = page
         self.refresh()
 
+    def _sync_new_btn(self) -> None:
+        recording = self.ctx.record_page.is_recording
+        self.new_btn.setText("● 녹음으로 돌아가기" if recording else "+ 새 녹음")
+        self.new_btn.setObjectName("Danger" if recording else "Primary")
+        self.new_btn.style().unpolish(self.new_btn)
+        self.new_btn.style().polish(self.new_btn)
+
     def refresh(self) -> None:
+        self._sync_new_btn()
         q = self.search.text()
         total = self.ctx.db.count(q)
         pages = max(1, -(-total // PAGE_SIZE))
