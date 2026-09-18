@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 from .. import __version__
 from ..paths import data_dir, resource_dir
 from ..stt import MODEL_SIZES, available_models
+from . import theme
 
 LEGAL_NOTICE = (
     "<b>녹음 관련 법적 고지</b><br>"
@@ -68,7 +69,10 @@ def about_dialog(parent) -> None:
     lay.addWidget(_para("<b>오픈소스 라이선스</b>"))
     view = QTextBrowser()
     view.setMinimumHeight(160)
-    view.setStyleSheet("font-size: 11px; background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 6px;")
+    view.setStyleSheet(
+        f"font-size: 11px; background: {theme.CARD}; color: {theme.TEXT}; "
+        f"border: 1px solid {theme.BORDER}; border-radius: 6px;"
+    )
     notices = resource_dir() / "THIRD_PARTY_NOTICES.txt"
     view.setPlainText(notices.read_text(encoding="utf-8") if notices.exists() else "")
     lay.addWidget(view, 1)
@@ -79,8 +83,8 @@ def about_dialog(parent) -> None:
     d.exec()
 
 
-def settings_dialog(parent, db, stt_device: str) -> bool:
-    """변환 모델 선택. 변경되면 True."""
+def settings_dialog(parent, db, stt_device: str) -> tuple[bool, str | None]:
+    """모델/테마 선택. (모델 변경 여부, 변경된 테마 또는 None)을 반환한다."""
     d, lay = _base(parent, "설정")
     current = db.get_setting("model", "small")
     models = available_models()
@@ -95,13 +99,13 @@ def settings_dialog(parent, db, stt_device: str) -> bool:
         rb = QRadioButton(desc[size] + ("" if size in models else "  (모델 없음)"))
         rb.setEnabled(size in models)
         rb.setChecked(size == current)
-        rb.setProperty("size", size)
+        rb.setProperty("modelSize", size)
         group.addButton(rb)
         lay.addWidget(rb)
 
     user_models = data_dir() / "models"
     lay.addWidget(_para(
-        f"<span style='color:#616161'>medium 모델은 용량이 커서 기본 설치에 포함되지 않습니다. "
+        f"<span style='color:{theme.TEXT_SUB}'>medium 모델은 용량이 커서 기본 설치에 포함되지 않습니다. "
         f"다운로드 페이지에서 받은 모델 폴더(medium)를 아래 위치에 넣으면 선택할 수 있습니다.<br>"
         f"{user_models}<br><br>"
         f"변환 장치: {'GPU (CUDA)' if stt_device == 'cuda' else 'CPU'}</span>"
@@ -113,6 +117,17 @@ def settings_dialog(parent, db, stt_device: str) -> bool:
     row.addStretch(1)
     lay.addLayout(row)
 
+    lay.addWidget(_para("<b>테마</b>"))
+    current_theme = db.get_setting("theme", "light")
+    theme_group = QButtonGroup(d)
+    theme_desc = {"light": "라이트 (밝은 배경)", "dark": "다크 (어두운 배경)"}
+    for mode in ("light", "dark"):
+        rb = QRadioButton(theme_desc[mode])
+        rb.setChecked(mode == current_theme)
+        rb.setProperty("themeMode", mode)
+        theme_group.addButton(rb)
+        lay.addWidget(rb)
+
     bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
     bb.button(QDialogButtonBox.Ok).setText("저장")
     bb.button(QDialogButtonBox.Cancel).setText("취소")
@@ -120,12 +135,19 @@ def settings_dialog(parent, db, stt_device: str) -> bool:
     bb.rejected.connect(d.reject)
     lay.addWidget(bb)
     if d.exec() != QDialog.Accepted:
-        return False
+        return False, None
+
+    new_theme = None
+    theme_checked = theme_group.checkedButton()
+    if theme_checked is not None and theme_checked.property("themeMode") != current_theme:
+        new_theme = theme_checked.property("themeMode")
+        db.set_setting("theme", new_theme)
+
     checked = group.checkedButton()
     if checked is None:
-        return False
-    size = checked.property("size")
+        return False, new_theme
+    size = checked.property("modelSize")
     if size != current:
         db.set_setting("model", size)
-        return True
-    return False
+        return True, new_theme
+    return False, new_theme

@@ -84,7 +84,7 @@ class Transcriber:
             language="ko",
             beam_size=5,
             vad_filter=True,
-            vad_parameters={"min_silence_duration_ms": 500},
+            vad_parameters={"min_silence_duration_ms": 2000},
             condition_on_previous_text=False,
         )
         total = info.duration or 0

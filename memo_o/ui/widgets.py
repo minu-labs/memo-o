@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QVBoxLayout, QWidget,
 )
 
+from .. import __version__
 from .. import db as dbm
 from . import theme
 
@@ -15,6 +16,7 @@ class TitleBar(QFrame):
     back_clicked = Signal()
     menu_clicked = Signal()
     record_indicator_clicked = Signal()
+    minimize_clicked = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -26,13 +28,20 @@ class TitleBar(QFrame):
 
         self.title = QLabel("MemoO")
         self.title.setObjectName("TitleText")
+        self.version_lbl = QLabel(f"v{__version__}")
+        self.version_lbl.setStyleSheet("color: #8A8A8A; font-size: 10px;")
         self.back = QPushButton()
         self.back.setObjectName("BackBtn")
         self.back.setCursor(Qt.PointingHandCursor)
         self.back.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.back.clicked.connect(self.back_clicked)
         self.back.hide()
-        lay.addWidget(self.title, 1)
+
+        title_row = QHBoxLayout()
+        title_row.setSpacing(6)
+        title_row.addWidget(self.title)
+        title_row.addWidget(self.version_lbl)
+        lay.addLayout(title_row, 1)
         lay.addWidget(self.back, 1)
 
         self.rec_indicator = QPushButton()
@@ -52,7 +61,7 @@ class TitleBar(QFrame):
         self.close_btn = self._btn("✕", "CloseBtn", "닫기")
         for b in (self.menu_btn, self.min_btn, self.max_btn, self.close_btn):
             lay.addWidget(b)
-        self.min_btn.clicked.connect(lambda: self.window().showMinimized())
+        self.min_btn.clicked.connect(self.minimize_clicked)
         self.max_btn.clicked.connect(self.toggle_max)
         self.close_btn.clicked.connect(lambda: self.window().close())
 
@@ -66,10 +75,12 @@ class TitleBar(QFrame):
     def set_title(self, text: str) -> None:
         self.back.hide()
         self.title.show()
+        self.version_lbl.show()
         self.title.setText(text)
 
     def set_back_title(self, text: str) -> None:
         self.title.hide()
+        self.version_lbl.hide()
         self.back.show()
         self.back.setText(f"←  {text}")
         self.back.setToolTip(text)

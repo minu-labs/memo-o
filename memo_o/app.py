@@ -45,7 +45,6 @@ def main() -> int:
 
     from .ui import theme
     app.setFont(theme.app_font())
-    app.setStyleSheet(theme.QSS)
     icon = resource_dir() / "memo-o.ico"
     if icon.exists():
         app.setWindowIcon(QIcon(str(icon)))
@@ -57,6 +56,7 @@ def main() -> int:
         return 0
 
     db = Database(db_path())
+    app.setStyleSheet(theme.set_mode(db.get_setting("theme", "light")))
     stt = TranscriptionService(db)
     stt.start()
 

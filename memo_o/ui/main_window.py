@@ -1,9 +1,9 @@
 import os
 
 from PySide6.QtCore import QEvent, QPoint, Qt, QTimer
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QGuiApplication, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QLabel, QMenu, QMessageBox, QStackedWidget, QVBoxLayout, QWidget,
+    QApplication, QLabel, QMenu, QMessageBox, QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from ..db import Database
@@ -11,6 +11,7 @@ from ..export import fmt_hms
 from ..paths import data_dir
 from ..transcription import TranscriptionService
 from . import theme
+from .compact_window import CompactWindow
 from .detail_page import DetailPage
 from .dialogs import about_dialog, settings_dialog
 from .list_page import ListPage
@@ -38,6 +39,7 @@ class MainWindow(QWidget):
         self.title_bar.back_clicked.connect(self.open_list)
         self.title_bar.menu_clicked.connect(self._show_menu)
         self.title_bar.record_indicator_clicked.connect(self.open_main)
+        self.title_bar.minimize_clicked.connect(self._on_minimize_clicked)
         lay.addWidget(self.title_bar)
 
         self.stack = QStackedWidget()
@@ -68,6 +70,11 @@ class MainWindow(QWidget):
         esc.activated.connect(self._escape)
 
         self._resizer = EdgeResizer(self)
+
+        self.compact = CompactWindow()
+        self.compact.restore_clicked.connect(self._restore_from_compact)
+        self.compact.stop_clicked.connect(self._stop_from_compact)
+
         self.open_main()
 
     # --- 네비게이션 (페이지에서 ctx로 호출) ---
@@ -107,10 +114,41 @@ class MainWindow(QWidget):
         self.title_bar.set_recording_active(recording)
         if recording:
             self.title_bar.set_recording_time(fmt_hms(0))
+            self.compact.set_time(fmt_hms(0))
+            self._enter_compact_mode()
+        elif self.compact.isVisible():
+            self._restore_from_compact()
         self.update_title()
 
     def update_recording_time(self, elapsed: float) -> None:
-        self.title_bar.set_recording_time(fmt_hms(elapsed))
+        text = fmt_hms(elapsed)
+        self.title_bar.set_recording_time(text)
+        self.compact.set_time(text)
+
+    # --- 컴팩트 모드 ---
+    def _on_minimize_clicked(self) -> None:
+        if self.record_page.is_recording:
+            self._enter_compact_mode()
+        else:
+            self.showMinimized()
+
+    def _enter_compact_mode(self) -> None:
+        self.compact.set_theme(theme.MODE)
+        screen = (self.screen() or QGuiApplication.primaryScreen()).availableGeometry()
+        self.compact.move(screen.right() - self.compact.width() - 24, screen.bottom() - self.compact.height() - 24)
+        self.hide()
+        self.compact.show()
+        self.compact.raise_()
+
+    def _restore_from_compact(self) -> None:
+        self.compact.hide()
+        self.show()
+        self.raise_()
+        self.activateWindow()
+
+    def _stop_from_compact(self) -> None:
+        self._restore_from_compact()
+        self.record_page.stop()
 
     def toast(self, msg: str, ms: int = 2000) -> None:
         self._toast.setText(msg)
@@ -141,6 +179,8 @@ class MainWindow(QWidget):
             for a in self.detail_page.menu_actions(m):
                 m.addAction(a)
             m.addSeparator()
+        if self.record_page.is_recording:
+            m.addAction("컴팩트 모드로 전환", self._enter_compact_mode)
         m.addAction("설정", self._settings)
         m.addAction("마이크 목록 새로고침", self._reload_mics)
         m.addAction("데이터 폴더 열기", lambda: os.startfile(data_dir()))
@@ -150,7 +190,11 @@ class MainWindow(QWidget):
         m.exec(btn.mapToGlobal(QPoint(btn.width() - m.sizeHint().width(), btn.height())))
 
     def _settings(self) -> None:
-        if settings_dialog(self, self.db, self.stt.device):
+        model_changed, new_theme = settings_dialog(self, self.db, self.stt.device)
+        if new_theme:
+            QApplication.instance().setStyleSheet(theme.set_mode(new_theme))
+            self.compact.set_theme(new_theme)
+        if model_changed:
             self.toast("다음 변환부터 새 모델이 적용됩니다.")
 
     def _reload_mics(self) -> None:
@@ -182,6 +226,7 @@ class MainWindow(QWidget):
                 return
             self.record_page.stop(ask_title=False)
         self.detail_page.player.stop()
+        self.compact.close()
         e.accept()
 
     def changeEvent(self, e) -> None:

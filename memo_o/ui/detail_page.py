@@ -225,11 +225,11 @@ class DetailPage:
             if q:
                 text = re.sub(
                     re.escape(html.escape(q)),
-                    lambda m: f"<span style='background:#FFE58F'>{m.group(0)}</span>",
+                    lambda m: f"<span style='background:#FFE58F; color:#1A1A1A'>{m.group(0)}</span>",
                     text, flags=re.IGNORECASE,
                 )
             bg = f"background:{theme.ACCENT_SOFT};" if i == self.current_idx else ""
-            cell = f"border-bottom:1px solid #F2F2F2; padding:6px 0; {bg}"
+            cell = f"border-bottom:1px solid {theme.DIVIDER}; padding:6px 0; {bg}"
             rows.append(
                 f"<tr><td width='46' valign='top' style='{cell}'>"
                 f"<a name='seg{i}' href='seek:{i}' style='color:{theme.TEXT_MUTED}; text-decoration:none;'>"

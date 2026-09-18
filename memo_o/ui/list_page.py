@@ -1,12 +1,16 @@
+import logging
+
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QSizePolicy, QVBoxLayout,
-    QWidget,
+    QFrame, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QScrollArea, QSizePolicy,
+    QVBoxLayout, QWidget,
 )
 
 from ..export import fmt_clock
+from . import theme
 from .widgets import Card, ClickableRow, StatusBadge, clear_layout, page_widget
 
+log = logging.getLogger(__name__)
 PAGE_SIZE = 8
 
 
@@ -93,6 +97,26 @@ class ListPage:
         self.page = page
         self.refresh()
 
+    def _delete(self, rec_id: int, title: str) -> None:
+        ans = QMessageBox.question(
+            self.widget, "녹음 삭제",
+            f"'{title}' 녹음과 변환된 텍스트를 삭제할까요?\n삭제한 녹음은 복구할 수 없습니다.",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+        )
+        if ans != QMessageBox.Yes:
+            return
+        self.ctx.stt.cancel(rec_id)
+        rec = self.ctx.db.get(rec_id)
+        self.ctx.db.delete(rec_id)
+        if rec:
+            try:
+                rec.file_path.unlink(missing_ok=True)
+            except OSError:
+                log.exception("녹음 파일 삭제 실패: %s", rec.file_path)
+        if self.ctx.detail_page.rec and self.ctx.detail_page.rec.id == rec_id:
+            self.ctx.detail_page.rec = None
+        self.refresh()
+
     def _sync_new_btn(self) -> None:
         recording = self.ctx.record_page.is_recording
         self.new_btn.setText("● 녹음으로 돌아가기" if recording else "+ 새 녹음")
@@ -131,12 +155,19 @@ class ListPage:
             badge = StatusBadge(r.status, self.ctx.stt.progress_of(r.id))
             self.badges[r.id] = badge
             row.lay.addWidget(badge, 0, Qt.AlignVCenter)
+            del_btn = QPushButton("삭제")
+            del_btn.setObjectName("RowDelete")
+            del_btn.setCursor(Qt.PointingHandCursor)
+            del_btn.setToolTip("삭제")
+            del_btn.setFocusPolicy(Qt.NoFocus)
+            del_btn.clicked.connect(lambda _=False, rid=r.id, title=r.title: self._delete(rid, title))
+            row.lay.addWidget(del_btn, 0, Qt.AlignVCenter)
             row.set_last(i == len(recs) - 1)
             row.clicked.connect(lambda rid=r.id: self.ctx.open_recording(rid))
             self.rows.addWidget(row)
         self.rows.addStretch(1)
 
-        self.page_lbl.setText(f"<b style='color:#1A1A1A'>{self.page + 1} / {pages}</b>")
+        self.page_lbl.setText(f"<b style='color:{theme.TEXT}'>{self.page + 1} / {pages}</b>")
         self.prev_btn.setEnabled(self.page > 0)
         self.next_btn.setEnabled(self.page < pages - 1)
 

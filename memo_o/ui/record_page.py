@@ -15,7 +15,7 @@ from .widgets import (
 )
 
 log = logging.getLogger(__name__)
-RECENT_COUNT = 3
+RECENT_COUNT = 2
 
 
 class RecordPage:
