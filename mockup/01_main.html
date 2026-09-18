@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>MemoO - 메인</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body{margin:0;font-family:"Segoe UI","Malgun Gothic",system-ui,sans-serif;background:#f3f3f3}
+  a{color:inherit;text-decoration:none}
+  .row{display:flex;align-items:center}
+  .titlebtn{width:32px;height:28px;display:flex;align-items:center;justify-content:center;color:#c9c9c9;font-size:11px}
+  .card{background:#ffffff;border:1px solid #e5e5e5;border-radius:8px}
+  .meeting-row{padding:8px 12px;border-bottom:1px solid #efefef}
+  .meeting-row:last-child{border-bottom:none}
+  .openlink{font-size:12px;color:#0078d4;font-weight:600}
+</style>
+</helmet>
+<div style="width: 440px; height: 640px; box-sizing: border-box; background: #f3f3f3; display: flex; flex-direction: column; font-size: 13px; color: #1a1a1a; overflow: hidden;">
+
+  <div class="row" style="height: 32px; background: #202020; padding: 0 0 0 12px; flex-shrink: 0;">
+    <div class="row" style="flex-grow: 1; color: #ffffff; font-size: 12px; font-weight: 600; letter-spacing: .2px;">MemoO</div>
+    <div class="row">
+      <div class="titlebtn">&#8212;</div>
+      <div class="titlebtn">&#9633;</div>
+      <div class="titlebtn" style="color:#f3a3a3;">&#10005;</div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 24px 28px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+
+    <button onClick="{{toggleRecord}}" style="width: 96px; height: 96px; border-radius: 50%; border: none; cursor: pointer; background: #d13438; box-shadow: 0 4px 14px rgba(209,52,56,0.4); display: flex; align-items: center; justify-content: center; margin-top: 4px;">
+      <div style="width: {{iconSize}}; height: {{iconSize}}; background: #ffffff; border-radius: {{iconRadius}};"></div>
+    </button>
+    <div style="font-size: 13px; font-weight: 600; color: #1a1a1a; margin-top: -4px;">{{btnLabel}}</div>
+
+    <div class="row" style="gap: 20px; color: #616161; font-size: 12px;">
+      <div>상태: <span style="color:#1a1a1a;font-weight:600;">{{statusText}}</span></div>
+      <div>시간: <span style="color:#1a1a1a;font-weight:600;font-variant-numeric:tabular-nums;">{{timerText}}</span></div>
+    </div>
+
+    <div class="row" style="gap: 8px; color: #616161; font-size: 12px;">
+      <span>마이크</span>
+      <div class="card" style="padding: 4px 10px; color:#1a1a1a; font-size: 12px;">기본 마이크 &#9662;</div>
+    </div>
+
+    <div class="card" style="width: 100%; margin-top: 4px;">
+      <div style="padding: 10px 12px; border-bottom: 1px solid #efefef; font-weight: 600; color: #1a1a1a; font-size: 12px;">최근 녹음</div>
+      <div class="meeting-row row" style="justify-content: space-between;">
+        <div>09-18 &nbsp; 아이디어 메모</div>
+        <a class="openlink" href="Detail.dc.html">열기</a>
+      </div>
+      <div class="meeting-row row" style="justify-content: space-between;">
+        <div>09-17 &nbsp; 강의 노트</div>
+        <a class="openlink" href="Detail.dc.html">열기</a>
+      </div>
+      <div class="meeting-row row" style="justify-content: space-between;">
+        <div>09-15 &nbsp; 고객 상담</div>
+        <a class="openlink" href="Detail.dc.html">열기</a>
+      </div>
+    </div>
+
+    <a href="List.dc.html" style="font-size: 12px; color: #0078d4; font-weight: 600;">녹음 목록 전체보기 &gt;</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":440,"height":640}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { recording: false };
+  }
+  renderVals() {
+    const rec = this.state.recording;
+    return {
+      recording: rec,
+      btnLabel: rec ? '녹음 중지' : '녹음 시작',
+      iconSize: rec ? '22px' : '36px',
+      iconRadius: rec ? '4px' : '50%',
+      statusText: rec ? '녹음 중...' : '대기 중',
+      timerText: rec ? '00:00:07' : '00:00:00',
+      toggleRecord: () => this.setState({ recording: !this.state.recording })
+    };
+  }
+}
+</script>
+</body>
+</html>

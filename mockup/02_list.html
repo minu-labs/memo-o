@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>MemoO - 녹음 목록</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body{margin:0;font-family:"Segoe UI","Malgun Gothic",system-ui,sans-serif;background:#f3f3f3}
+  a{color:inherit;text-decoration:none}
+  .row{display:flex;align-items:center}
+  .titlebtn{width:32px;height:28px;display:flex;align-items:center;justify-content:center;color:#c9c9c9;font-size:11px}
+  .item{padding:10px 12px;border-bottom:1px solid #efefef}
+  .item:last-child{border-bottom:none}
+  .status{font-size:11px;padding:1px 7px;border-radius:4px}
+  .status-done{background:#e6f4ea;color:#1a7f37}
+  .status-ing{background:#fff4ce;color:#8a6d00}
+</style>
+</helmet>
+<div style="width: 440px; height: 640px; box-sizing: border-box; background: #f3f3f3; display: flex; flex-direction: column; font-size: 13px; color: #1a1a1a; overflow: hidden;">
+
+  <div class="row" style="height: 32px; background: #202020; padding: 0 0 0 12px; flex-shrink: 0;">
+    <div class="row" style="flex-grow: 1; color: #ffffff; font-size: 12px; font-weight: 600;">MemoO - 녹음 목록</div>
+    <div class="row">
+      <div class="titlebtn">&#8212;</div>
+      <div class="titlebtn">&#9633;</div>
+      <div class="titlebtn" style="color:#f3a3a3;">&#10005;</div>
+    </div>
+  </div>
+
+  <div class="row" style="padding: 10px 14px; gap: 8px; border-bottom: 1px solid #e5e5e5; background: #ffffff;">
+    <input type="text" placeholder="검색" style="flex-grow: 1; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 12px;">
+    <a href="Main.dc.html" style="background: #0078d4; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">+ 새 녹음</a>
+  </div>
+
+  <div style="flex-grow: 1; overflow: auto; background: #ffffff; margin: 12px 14px; border: 1px solid #e5e5e5; border-radius: 8px;">
+    <a href="Detail.dc.html" class="item row" style="justify-content: space-between;">
+      <div>
+        <div style="font-weight:600;">아이디어 메모</div>
+        <div style="color:#8a8a8a;font-size:11px;margin-top:2px;">09-18 &middot; 32:10</div>
+      </div>
+      <span class="status status-done">완료</span>
+    </a>
+    <a href="Detail.dc.html" class="item row" style="justify-content: space-between;">
+      <div>
+        <div style="font-weight:600;">강의 노트</div>
+        <div style="color:#8a8a8a;font-size:11px;margin-top:2px;">09-17 &middot; 18:44</div>
+      </div>
+      <span class="status status-done">완료</span>
+    </a>
+    <a href="Detail.dc.html" class="item row" style="justify-content: space-between;">
+      <div>
+        <div style="font-weight:600;">고객 상담</div>
+        <div style="color:#8a8a8a;font-size:11px;margin-top:2px;">09-15 &middot; 12:05</div>
+      </div>
+      <span class="status status-ing">변환 중</span>
+    </a>
+    <a href="Detail.dc.html" class="item row" style="justify-content: space-between;">
+      <div>
+        <div style="font-weight:600;">브레인스토밍</div>
+        <div style="color:#8a8a8a;font-size:11px;margin-top:2px;">09-10 &middot; 45:02</div>
+      </div>
+      <span class="status status-done">완료</span>
+    </a>
+  </div>
+
+  <div class="row" style="justify-content: center; padding-bottom: 12px; color: #616161; font-size: 11px; gap: 8px;">
+    <span>&lt; 이전</span><span style="color:#1a1a1a;font-weight:600;">1 / 3</span><span>다음 &gt;</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":440,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

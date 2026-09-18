@@ -1,0 +1,20 @@
+﻿MemoO 사용 안내 및 라이선스
+
+1. 무료 소프트웨어
+MemoO는 무료로 배포되는 오프라인 녹음 + 텍스트 변환(STT) 프로그램입니다.
+본 소프트웨어는 "있는 그대로" 제공되며, 사용으로 인해 발생하는 결과에 대해 제작자는 책임지지 않습니다.
+
+2. 개인정보 보호
+MemoO는 인터넷에 연결하지 않습니다. 녹음 파일과 변환된 텍스트는 이 PC 안에서만 처리·저장되며
+외부 서버로 전송되지 않습니다. 데이터 저장 위치: %LOCALAPPDATA%\MemoO
+
+3. 녹음 관련 법적 고지
+통신비밀보호법에 따라 본인이 참여한 대화의 녹음은 상대방의 동의 없이도 가능하지만,
+본인이 참여하지 않은 타인 간의 대화를 몰래 녹음하는 것은 불법이며 형사처벌 대상입니다.
+녹음 기능의 사용과 그 결과에 대한 책임은 사용자에게 있습니다.
+
+4. 오픈소스 라이선스
+MemoO는 faster-whisper(MIT), CTranslate2(MIT), OpenAI Whisper 모델(MIT), Silero VAD(MIT),
+ONNX Runtime(MIT), sounddevice/PortAudio(MIT), NumPy(BSD), PyAV(BSD), FFmpeg(LGPL),
+Qt for Python/PySide6(LGPLv3) 등의 오픈소스 소프트웨어를 사용합니다.
+전체 고지는 프로그램의 [메뉴 > MemoO 정보] 또는 설치 폴더의 _internal\THIRD_PARTY_NOTICES.txt 에서 확인할 수 있습니다.

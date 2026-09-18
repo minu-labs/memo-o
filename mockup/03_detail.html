@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>MemoO - 녹음 상세</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body{margin:0;font-family:"Segoe UI","Malgun Gothic",system-ui,sans-serif;background:#f3f3f3}
+  a{color:inherit;text-decoration:none}
+  .row{display:flex;align-items:center}
+  .titlebtn{width:32px;height:28px;display:flex;align-items:center;justify-content:center;color:#c9c9c9;font-size:11px}
+  .ctrlbtn{width:28px;height:28px;border-radius:50%;border:none;background:#eef3fb;color:#0078d4;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .transcript-line{padding:6px 0;border-bottom:1px solid #f2f2f2;font-size:12px;color:#1a1a1a;line-height:1.5}
+  .ts{color:#8a8a8a;font-variant-numeric:tabular-nums;margin-right:8px}
+  .actionbtn{flex:1;text-align:center;padding:8px 6px;border-radius:6px;font-size:12px;font-weight:600;}
+</style>
+</helmet>
+<div style="width: 440px; height: 640px; box-sizing: border-box; background: #f3f3f3; display: flex; flex-direction: column; font-size: 13px; color: #1a1a1a; overflow: hidden;">
+
+  <div class="row" style="height: 32px; background: #202020; padding: 0 0 0 12px; flex-shrink: 0;">
+    <a href="List.dc.html" class="row" style="flex-grow: 1; gap: 6px; color: #ffffff; font-size: 12px; font-weight: 600; overflow:hidden;">
+      <span>&#8592;</span><span style="white-space:nowrap;">아이디어 메모 &middot; 09-18</span>
+    </a>
+    <div class="row">
+      <div class="titlebtn">&#8212;</div>
+      <div class="titlebtn">&#9633;</div>
+      <div class="titlebtn" style="color:#f3a3a3;">&#10005;</div>
+    </div>
+  </div>
+
+  <div style="background: #ffffff; padding: 12px 16px; border-bottom: 1px solid #e5e5e5;">
+    <div class="row" style="gap: 8px;">
+      <button class="ctrlbtn">&#9664;&#9664;</button>
+      <button class="ctrlbtn" style="width:34px;height:34px;background:#0078d4;color:#ffffff;">&#9654;</button>
+      <button class="ctrlbtn">&#9654;&#9654;</button>
+      <div style="flex-grow: 1; height: 5px; background: #eaeaea; border-radius: 3px; margin: 0 6px; position: relative;">
+        <div style="position:absolute; left:0; top:0; height:100%; width:44%; background:#0078d4; border-radius:3px;"></div>
+      </div>
+      <div style="font-size: 11px; color: #616161; font-variant-numeric: tabular-nums;">14:22/32:10</div>
+    </div>
+  </div>
+
+  <div style="padding: 8px 16px; background: #ffffff; border-bottom: 1px solid #e5e5e5;">
+    <input type="text" placeholder="내용 검색" style="width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 12px;">
+  </div>
+
+  <div style="flex-grow: 1; overflow: auto; padding: 12px 16px; background: #ffffff;">
+    <div class="transcript-line"><span class="ts">00:00</span>오늘 안건은 두 가지입니다. 먼저 지난 주 진행 상황부터 공유드릴게요.</div>
+    <div class="transcript-line"><span class="ts">00:45</span>지난주 이슈였던 API 응답 지연 건은 원인 파악이 끝났습니다.</div>
+    <div class="transcript-line"><span class="ts">01:20</span>담당자 확인 후 다음 주까지 픽스하기로 했습니다.</div>
+    <div class="transcript-line"><span class="ts">02:03</span>두 번째 안건은 다음 분기 로드맵 관련 논의입니다.</div>
+    <div class="transcript-line"><span class="ts">02:55</span>우선순위는 공유 후 별도 문서로 정리하겠습니다.</div>
+  </div>
+
+  <div class="row" style="padding: 10px 16px; gap: 8px; background: #fafafa; border-top: 1px solid #e5e5e5;">
+    <div class="actionbtn" style="background: #0078d4; color: #ffffff;">내보내기</div>
+    <div class="actionbtn" style="background: #fdecec; color: #d13438;">삭제</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":440,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

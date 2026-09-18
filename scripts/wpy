@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# WSL에서 프로젝트의 Windows venv 파이썬 실행 (cwd = 프로젝트 루트). 스크립트는 -m 으로 실행할 것.
+ROOT='\\wsl.localhost\Ubuntu\home\hg623\momo-o'
+cd /mnt/c && exec cmd.exe /c "set \"PYTHONIOENCODING=utf-8\" && pushd $ROOT && .venv\\Scripts\\python.exe $* & popd"

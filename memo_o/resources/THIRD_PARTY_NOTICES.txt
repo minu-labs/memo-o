@@ -1,0 +1,76 @@
+MemoO는 아래 오픈소스 소프트웨어를 사용합니다.
+MemoO uses the following open-source software.
+
+----------------------------------------------------------------------
+faster-whisper — MIT License
+Copyright (c) 2023 SYSTRAN
+https://github.com/SYSTRAN/faster-whisper
+
+CTranslate2 — MIT License
+Copyright (c) 2019 OpenNMT
+https://github.com/OpenNMT/CTranslate2
+
+Whisper 모델 가중치 (OpenAI Whisper, CTranslate2 변환본 Systran/faster-whisper-*) — MIT License
+Copyright (c) 2022 OpenAI
+https://github.com/openai/whisper
+
+Silero VAD — MIT License
+Copyright (c) 2020-present Silero Team
+https://github.com/snakers4/silero-vad
+
+ONNX Runtime — MIT License
+Copyright (c) Microsoft Corporation
+https://github.com/microsoft/onnxruntime
+
+tokenizers (Hugging Face) — Apache License 2.0
+https://github.com/huggingface/tokenizers
+
+sounddevice — MIT License
+Copyright (c) 2015-2023 Matthias Geier
+https://github.com/spatialaudio/python-sounddevice
+
+PortAudio — MIT License
+Copyright (c) 1999-2011 Ross Bencina and Phil Burk
+http://www.portaudio.com
+
+NumPy — BSD 3-Clause License
+Copyright (c) 2005-2024, NumPy Developers
+https://numpy.org
+
+PyAV — BSD 3-Clause License
+Copyright retained by original committers
+https://github.com/PyAV-Org/PyAV
+
+FFmpeg — GNU Lesser General Public License v2.1 or later
+https://ffmpeg.org  (PyAV 및 Qt Multimedia를 통해 동적 링크)
+
+Qt for Python (PySide6) / Qt 6 — GNU Lesser General Public License v3.0
+Copyright (C) The Qt Company Ltd.
+https://www.qt.io / 소스: https://code.qt.io
+MemoO는 PySide6/Qt 라이브러리를 수정 없이 동적 링크로 사용하며, 사용자는 설치 폴더의
+해당 라이브러리 파일을 호환되는 버전으로 교체할 수 있습니다.
+
+Python — Python Software Foundation License
+Copyright (c) 2001-2024 Python Software Foundation
+https://www.python.org
+
+----------------------------------------------------------------------
+MIT License (위 MIT 라이선스 구성요소 공통)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
