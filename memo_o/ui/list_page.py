@@ -1,6 +1,6 @@
 import logging
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QUrl
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QScrollArea, QSizePolicy,
     QVBoxLayout, QWidget,
@@ -106,6 +106,10 @@ class ListPage:
         if ans != QMessageBox.Yes:
             return
         self.ctx.stt.cancel(rec_id)
+        if self.ctx.detail_page.rec and self.ctx.detail_page.rec.id == rec_id:
+            self.ctx.detail_page.player.stop()
+            self.ctx.detail_page.player.setSource(QUrl())
+            self.ctx.detail_page.rec = None
         rec = self.ctx.db.get(rec_id)
         self.ctx.db.delete(rec_id)
         if rec:
@@ -113,8 +117,6 @@ class ListPage:
                 rec.file_path.unlink(missing_ok=True)
             except OSError:
                 log.exception("녹음 파일 삭제 실패: %s", rec.file_path)
-        if self.ctx.detail_page.rec and self.ctx.detail_page.rec.id == rec_id:
-            self.ctx.detail_page.rec = None
         self.refresh()
 
     def _sync_new_btn(self) -> None:
