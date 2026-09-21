@@ -2,7 +2,7 @@
 #   powershell -ExecutionPolicy Bypass -File build.ps1 [-SkipInstaller]
 param([switch]$SkipInstaller)
 $ErrorActionPreference = "Stop"
-$root = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+$root = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).ProviderPath }
 Set-Location $root
 $py = Join-Path $root ".venv\Scripts\python.exe"
 $work = Join-Path $env:TEMP "memo-o-build"

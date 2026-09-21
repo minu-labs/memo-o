@@ -2,7 +2,7 @@
 const env = import.meta.env
 
 export const APP_VERSION = '1.0.0'
-export const INSTALLER_SIZE = env.VITE_INSTALLER_SIZE || '약 400MB'
+export const INSTALLER_SIZE = env.VITE_INSTALLER_SIZE || '약 510MB'
 export const GITHUB_REPO = env.VITE_GITHUB_REPO || '' // 예: "username/memo-o"
 export const CONTACT_EMAIL = env.VITE_CONTACT_EMAIL || ''
 export const ADSENSE_CLIENT = env.VITE_ADSENSE_CLIENT || '' // 예: "ca-pub-1234567890123456"
