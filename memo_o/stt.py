@@ -44,6 +44,10 @@ class Transcriber:
         self._model_key: tuple[str, str] | None = None
         self.device = "cpu"
 
+    def warmup(self, size: str) -> None:
+        """모델을 미리 로드해 첫 변환 시의 로딩 지연을 없앤다."""
+        self._load(size)
+
     def _load(self, size: str):
         path = find_model(size)
         if path is None:
@@ -65,7 +69,9 @@ class Transcriber:
             except Exception as e:  # CUDA 런타임(cuBLAS/cuDNN) 미설치 등
                 log.warning("CUDA 로드 실패, CPU로 전환: %s", e)
         if self._model is None:
-            self._model = WhisperModel(str(path), device="cpu", compute_type="int8",
+            # int8_float32: int8 양자화 가중치 + float32 연산. 순수 int8보다 정확도가 좋고
+            # GPU 없는 환경에서 float32보다 훨씬 빠르다.
+            self._model = WhisperModel(str(path), device="cpu", compute_type="int8_float32",
                                        cpu_threads=os.cpu_count() or 4, local_files_only=True)
             self.device = "cpu"
         self._model_key = key

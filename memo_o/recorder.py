@@ -64,6 +64,7 @@ class Recorder:
         self._stopping = False
         self._stopped_unexpectedly = False
         self.error: str | None = None
+        self.level = 0.0  # 최근 오디오 청크의 피크 레벨 (0~1)
 
     def start(self) -> None:
         rate, stream = self._open_stream()
@@ -85,6 +86,7 @@ class Recorder:
 
     def _callback(self, indata: np.ndarray, frames, time_info, status) -> None:
         self._queue.put(indata.tobytes())
+        self.level = float(np.abs(indata).max()) / 32768.0 if indata.size else 0.0
 
     def _finished(self) -> None:
         if self._stream is not None and not self._stopping:

@@ -154,11 +154,41 @@ class RecordButton(QAbstractButton):
         super().leaveEvent(e)
 
 
+class LevelMeter(QWidget):
+    """마이크 입력 레벨(0~1) 표시 바. 소리가 잘 들어오는지 눈으로 확인할 수 있게 한다."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._level = 0.0
+        self.setFixedHeight(6)
+        self.setMinimumWidth(120)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+    def set_level(self, level: float) -> None:
+        level = max(0.0, min(1.0, level))
+        if abs(level - self._level) < 0.01:
+            return
+        self._level = level
+        self.update()
+
+    def paintEvent(self, _):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setPen(Qt.NoPen)
+        rect = QRectF(self.rect())
+        p.setBrush(QColor(theme.SLIDER_GROOVE))
+        p.drawRoundedRect(rect, 3, 3)
+        if self._level > 0:
+            fg = QColor(theme.RED) if self._level > 0.9 else QColor(theme.ACCENT)
+            p.setBrush(fg)
+            p.drawRoundedRect(QRectF(rect.x(), rect.y(), rect.width() * self._level, rect.height()), 3, 3)
+
+
 def status_text(status: str, progress: float | None = None) -> str:
     if status == dbm.DONE:
         return "완료"
     if status == dbm.TRANSCRIBING:
-        return f"변환 중 {progress:.0%}" if progress else "변환 중"
+        return f"변환 중 {progress:.0%}" if progress is not None else "변환 중"
     if status == dbm.PENDING:
         return "변환 대기"
     if status == dbm.RECORDING:

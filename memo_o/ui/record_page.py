@@ -11,7 +11,7 @@ from ..export import fmt_hms
 from ..paths import recordings_dir
 from ..recorder import Recorder, list_input_devices
 from .widgets import (
-    Card, ClickableRow, RecordButton, StatusBadge, clear_layout, link_button, page_widget,
+    Card, ClickableRow, LevelMeter, RecordButton, StatusBadge, clear_layout, link_button, page_widget,
 )
 
 log = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ class RecordPage:
         self.ctx = ctx
         self.recorder: Recorder | None = None
         self.rec_id: int | None = None
+        self.badges: dict[int, StatusBadge] = {}
         self.widget = w = page_widget()
         self.open_recording = ctx.open_recording
         self.open_list = ctx.open_list
@@ -68,6 +69,13 @@ class RecordPage:
         mic.addStretch(1)
         root.addLayout(mic)
 
+        level_row = QHBoxLayout()
+        level_row.setContentsMargins(40, 0, 40, 0)
+        self.level_meter = LevelMeter()
+        self.level_meter.hide()
+        level_row.addWidget(self.level_meter)
+        root.addLayout(level_row)
+
         self.recent = Card()
         header = QFrame()
         header.setObjectName("CardHeader")
@@ -106,6 +114,7 @@ class RecordPage:
 
     def refresh(self) -> None:
         clear_layout(self.recent_rows)
+        self.badges = {}
         recs = self.ctx.db.list(limit=RECENT_COUNT)
         if not recs:
             empty = QLabel("아직 녹음이 없습니다. 버튼을 눌러 첫 메모를 남겨보세요.")
@@ -120,13 +129,22 @@ class RecordPage:
             text.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
             row.lay.addWidget(text, 1)
             if r.status != dbm.DONE:
-                row.lay.addWidget(StatusBadge(r.status, self.ctx.stt.progress_of(r.id)))
+                badge = StatusBadge(r.status, self.ctx.stt.progress_of(r.id))
+                self.badges[r.id] = badge
+                row.lay.addWidget(badge)
             open_lbl = QLabel("열기")
             open_lbl.setObjectName("Link")
             row.lay.addWidget(open_lbl)
             row.set_last(i == len(recs) - 1)
             row.clicked.connect(lambda rid=r.id: self.open_recording(rid))
             self.recent_rows.addWidget(row)
+
+    def on_progress(self, rec_id: int, p: float) -> None:
+        badge = self.badges.get(rec_id)
+        if badge is not None:
+            rec = self.ctx.db.get(rec_id)
+            if rec:
+                badge.set_status(rec.status, p)
 
     def reload_devices(self) -> None:
         current = self.mic_combo.currentData()
@@ -171,6 +189,8 @@ class RecordPage:
         self.btn_label.setText("녹음 중지")
         self.status_lbl.setText("상태: <b>녹음 중...</b>")
         self.mic_combo.setEnabled(False)
+        self.level_meter.set_level(0.0)
+        self.level_meter.show()
         self.timer.start()
         self._tick()
         self.ctx.recording_state_changed(True)
@@ -206,11 +226,13 @@ class RecordPage:
         self.status_lbl.setText("상태: <b>대기 중</b>")
         self.time_lbl.setText("시간: <b>00:00:00</b>")
         self.mic_combo.setEnabled(True)
+        self.level_meter.hide()
 
     def _tick(self) -> None:
         if not self.recorder:
             return
         self.time_lbl.setText(f"시간: <b>{fmt_hms(self.recorder.elapsed)}</b>")
         self.ctx.update_recording_time(self.recorder.elapsed)
+        self.level_meter.set_level(self.recorder.level)
         if self.recorder.failed:
             self.stop(ask_title=False)

@@ -171,6 +171,8 @@ class MainWindow(QWidget):
             self.list_page.on_progress(rec_id, p)
         elif self.current is self.detail_page:
             self.detail_page.on_progress(rec_id, p)
+        elif self.current is self.record_page:
+            self.record_page.on_progress(rec_id, p)
 
     # --- 메뉴 / 단축키 ---
     def _show_menu(self) -> None:

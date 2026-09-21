@@ -72,6 +72,10 @@ class TranscriptionService(QObject):
         self._thread.join(timeout)
 
     def _run(self) -> None:
+        try:
+            self._transcriber.warmup(self.db.get_setting("model", DEFAULT_MODEL))
+        except Exception:
+            log.exception("모델 사전 로드 실패 (첫 변환 시 다시 시도됩니다)")
         while True:
             rid = self._queue.get()
             if rid is None or self._shutdown:
@@ -95,6 +99,7 @@ class TranscriptionService(QObject):
 
         def on_progress(p: float) -> None:
             nonlocal last_emit
+            p = max(p, self._progress.get(rid, 0.0))
             self._progress[rid] = p
             now = time.monotonic()
             if now - last_emit > 0.3 or p >= 1.0:
@@ -104,6 +109,20 @@ class TranscriptionService(QObject):
         def cancelled() -> bool:
             return self._shutdown or rid in self._cancel_ids
 
+        # faster-whisper는 감지된 '말 구간'이 끝나야 진행률을 알려준다. 끊김 없이 이어지는
+        # 짧은 녹음은 구간이 하나뿐이라 완료 직전까지 콜백이 안 와, 경과 시간 기반으로
+        # 추정치를 채워 넣어 화면이 0%에 멈춰 보이지 않게 한다 (실제 콜백이 오면 그 값 우선).
+        started = time.monotonic()
+        stop_estimate = threading.Event()
+
+        def _estimate() -> None:
+            if rec.duration <= 0:
+                return
+            while not stop_estimate.wait(0.3):
+                on_progress(min((time.monotonic() - started) / rec.duration, 0.95))
+
+        estimator = threading.Thread(target=_estimate, name="memoo-stt-progress", daemon=True)
+        estimator.start()
         try:
             if not rec.file_path.exists():
                 raise FileNotFoundError("녹음 파일이 없습니다.")
@@ -121,6 +140,8 @@ class TranscriptionService(QObject):
             if self.db.get(rid) is not None:
                 self.db.update(rid, status=dbm.ERROR, error=str(e))
         finally:
+            stop_estimate.set()
+            estimator.join(timeout=1)
             self._current = None
             self._progress.pop(rid, None)
             self.changed.emit(rid)
