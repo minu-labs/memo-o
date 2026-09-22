@@ -1,12 +1,15 @@
-"""앱 아이콘(memo-o.ico) 생성: 빨간 원 + 흰 점. PNG 페이로드를 담은 멀티 사이즈 ICO를 직접 기록한다."""
+"""앱 아이콘(memo-o.ico) 생성: 둥근 사각 배지 + 흰 사운드바. PNG 페이로드를 담은 멀티 사이즈 ICO를 직접 기록한다."""
 import struct
 from pathlib import Path
 
-from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QPointF, Qt
-from PySide6.QtGui import QColor, QGuiApplication, QImage, QPainter
+from PySide6.QtCore import QRectF, Qt
+from PySide6.QtGui import QBrush, QColor, QGuiApplication, QImage, QLinearGradient, QPainter
 
 SIZES = (16, 24, 32, 48, 64, 128, 256)
-OUT = Path(__file__).resolve().parent.parent / "memo_o" / "resources" / "memo-o.ico"
+OUT_PATHS = (
+    Path(__file__).resolve().parent.parent / "memo_o" / "resources" / "memo-o.ico",
+    Path(__file__).resolve().parent.parent / "web" / "public" / "favicon.ico",
+)
 
 
 def render(size: int) -> bytes:
@@ -15,12 +18,32 @@ def render(size: int) -> bytes:
     p = QPainter(img)
     p.setRenderHint(QPainter.Antialiasing)
     p.setPen(Qt.NoPen)
-    c = QPointF(size / 2, size / 2)
-    p.setBrush(QColor("#D13438"))
-    p.drawEllipse(c, size * 0.47, size * 0.47)
+
+    # 배지: 완전한 원 대신 둥근 사각형 + 그라데이션으로 입체감을 준다.
+    margin = size * 0.04
+    rect = QRectF(margin, margin, size - margin * 2, size - margin * 2)
+    grad = QLinearGradient(rect.topLeft(), rect.bottomRight())
+    grad.setColorAt(0.0, QColor("#E2555A"))
+    grad.setColorAt(1.0, QColor("#B92B2E"))
+    p.setBrush(QBrush(grad))
+    p.drawRoundedRect(rect, size * 0.24, size * 0.24)
+
+    # 사운드바 3개 (가운데가 가장 김)
     p.setBrush(QColor("#FFFFFF"))
-    p.drawEllipse(c, size * 0.18, size * 0.18)
+    bar_w = size * 0.115
+    gap = size * 0.08
+    heights = (size * 0.26, size * 0.46, size * 0.34)
+    total_w = bar_w * len(heights) + gap * (len(heights) - 1)
+    x = size / 2 - total_w / 2
+    cy = size / 2
+    for h in heights:
+        bar = QRectF(x, cy - h / 2, bar_w, h)
+        p.drawRoundedRect(bar, bar_w / 2, bar_w / 2)
+        x += bar_w + gap
+
     p.end()
+    from PySide6.QtCore import QBuffer, QByteArray, QIODevice
+
     ba = QByteArray()
     buf = QBuffer(ba)
     buf.open(QIODevice.WriteOnly)
@@ -28,9 +51,7 @@ def render(size: int) -> bytes:
     return bytes(ba)
 
 
-def main() -> None:
-    QGuiApplication([])
-    pngs = [render(s) for s in SIZES]
+def build_ico(pngs: list[bytes]) -> bytes:
     header = struct.pack("<HHH", 0, 1, len(SIZES))
     offset = 6 + 16 * len(SIZES)
     entries, blobs = b"", b""
@@ -39,9 +60,17 @@ def main() -> None:
         entries += struct.pack("<BBBBHHII", dim, dim, 0, 0, 1, 32, len(png), offset)
         offset += len(png)
         blobs += png
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_bytes(header + entries + blobs)
-    print("saved", OUT)
+    return header + entries + blobs
+
+
+def main() -> None:
+    QGuiApplication([])
+    pngs = [render(s) for s in SIZES]
+    ico = build_ico(pngs)
+    for out in OUT_PATHS:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_bytes(ico)
+        print("saved", out)
 
 
 if __name__ == "__main__":

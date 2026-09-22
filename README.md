@@ -91,17 +91,15 @@ npm run dev          # http://localhost:5173/memo-o
 npm run build        # web/dist
 ```
 
-`/memo-o` (다운로드), `/memo-o/privacy` (개인정보처리방침). 배포 전에 `.env.example` 을 참고해 Vercel 환경 변수를 설정한다.
+`/memo-o` (다운로드), `/memo-o/guide` (사용법), `/memo-o/privacy` (개인정보처리방침). 배포 전에 `.env.example` 을 참고해 Vercel 환경 변수를 설정한다.
 
 | 변수 | 설명 |
 | --- | --- |
 | `VITE_GITHUB_REPO` | `owner/memo-o` — 다운로드 버튼이 `releases/latest/download/memo-o-setup-<버전>.exe` 로 연결됨 |
 | `VITE_INSTALLER_SIZE` | 설치 파일 크기 표시 |
-| `VITE_CONTACT_EMAIL` | 개인정보처리방침 문의처 (AdSense 심사 시 권장) |
-| `VITE_ADSENSE_CLIENT` | `ca-pub-...` — 설정하면 AdSense 스크립트와 `ads.txt` 가 생성됨 |
-| `VITE_ADSENSE_SLOT_TOP` / `_BOTTOM` | 광고 단위 ID |
+| `VITE_CONTACT_EMAIL` | 개인정보처리방침 문의처 |
 
-기존 minulog.com(Vue 3) 프로젝트에 합치려면 `src/pages/*.vue`, `src/components/AdSlot.vue`, `src/config.js`, `public/screens/` 를 옮기고 라우트 두 개를 추가하면 된다.
+사이트에는 광고가 없다. 기존 minulog.com(Vue 3) 프로젝트에 합치려면 `src/pages/*.vue`, `src/config.js`, `public/screens/` 를 옮기고 라우트 세 개를 추가하면 된다.
 
 ## 릴리스 체크리스트
 

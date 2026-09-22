@@ -26,8 +26,6 @@
     </div>
   </section>
 
-  <div class="wrap"><AdSlot :ad-slot="ADSENSE_SLOTS.top" /></div>
-
   <section id="features" class="section">
     <div class="wrap">
       <h2>이런 분께 필요합니다</h2>
@@ -40,7 +38,9 @@
 
       <div class="features">
         <div class="feature" v-for="f in features" :key="f.title">
-          <div class="feature-icon" aria-hidden="true">{{ f.icon }}</div>
+          <svg class="feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" :d="f.icon" />
+          </svg>
           <h3>{{ f.title }}</h3>
           <p>{{ f.desc }}</p>
         </div>
@@ -58,6 +58,7 @@
           <li><b>자동 텍스트 변환</b> — 녹음을 저장하면 PC에서 바로 텍스트로 바뀝니다.</li>
           <li><b>찾아보고 내보내기</b> — 문장을 누르면 그 부분부터 재생되고, txt·srt로 저장할 수 있습니다.</li>
         </ol>
+        <p class="small"><RouterLink to="/memo-o/guide">전체 사용법 보기 →</RouterLink></p>
       </div>
       <div>
         <h2>시스템 요구사항</h2>
@@ -106,8 +107,6 @@
     </div>
   </section>
 
-  <div class="wrap"><AdSlot :ad-slot="ADSENSE_SLOTS.bottom" /></div>
-
   <section id="licenses" class="section">
     <div class="wrap narrow">
       <h2>오픈소스 라이선스</h2>
@@ -132,8 +131,7 @@
 </template>
 
 <script setup>
-import AdSlot from '../components/AdSlot.vue'
-import { ADSENSE_SLOTS, APP_VERSION, DOWNLOAD_URL, INSTALLER_SIZE, RELEASES_URL } from '../config.js'
+import { APP_VERSION, DOWNLOAD_URL, INSTALLER_SIZE, RELEASES_URL } from '../config.js'
 
 const usecases = [
   { title: '아이디어 메모', desc: '떠오른 생각을 말로 남기고 나중에 글로 정리' },
@@ -143,18 +141,42 @@ const usecases = [
 ]
 
 const features = [
-  { icon: '🔒', title: '완전 오프라인', desc: '음성 인식 모델이 PC에 함께 설치됩니다. 인터넷이 끊겨도, 사내망에서도 그대로 동작합니다.' },
-  { icon: '⚡', title: '녹음 후 자동 변환', desc: '버튼 한 번으로 녹음하고, 저장하면 한국어 텍스트로 자동 변환됩니다. 변환 중에도 바로 재생할 수 있습니다.' },
-  { icon: '🔎', title: '검색과 구간 재생', desc: '제목과 내용으로 녹음을 찾고, 문장을 클릭하면 그 시점부터 다시 들을 수 있습니다.' },
-  { icon: '📄', title: '내보내기', desc: '타임스탬프가 붙은 텍스트(.txt), 자막(.srt), 원본 음성(.wav)으로 저장할 수 있습니다.' },
-  { icon: '🛟', title: '강제 종료에도 안전', desc: '녹음 중 PC가 꺼지거나 프로그램이 종료돼도 그때까지의 녹음은 보존됩니다.' },
-  { icon: '🪶', title: '작고 단순한 화면', desc: '작은 창 하나로 녹음·목록·상세 화면만 담았습니다. 설정할 것이 거의 없습니다.' },
+  {
+    icon: 'M12 2a5 5 0 0 0-5 5v2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm0 2a3 3 0 0 1 3 3v2H9V7a3 3 0 0 1 3-3Zm0 9a2 2 0 0 1 1 3.73V18a1 1 0 1 1-2 0v-1.27A2 2 0 0 1 12 13Z',
+    title: '완전 오프라인',
+    desc: '음성 인식 모델이 PC에 함께 설치됩니다. 인터넷이 끊겨도, 사내망에서도 그대로 동작합니다.',
+  },
+  {
+    icon: 'M13.5 2 4 13.5a.75.75 0 0 0 .58 1.22h5.13l-1.2 7.06a.6.6 0 0 0 1.06.47L20 10.5a.75.75 0 0 0-.58-1.22h-5.13l1.2-7.06A.6.6 0 0 0 13.5 2Z',
+    title: '녹음 후 자동 변환',
+    desc: '버튼 한 번으로 녹음하고, 저장하면 한국어 텍스트로 자동 변환됩니다. 변환 중에도 바로 재생할 수 있습니다.',
+  },
+  {
+    icon: 'M10.5 3a7.5 7.5 0 1 0 4.55 13.46l4.24 4.25a1.06 1.06 0 0 0 1.5-1.5l-4.25-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z',
+    title: '검색과 구간 재생',
+    desc: '제목과 내용으로 녹음을 찾고, 문장을 클릭하면 그 시점부터 다시 들을 수 있습니다.',
+  },
+  {
+    icon: 'M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.83a2 2 0 0 0-.59-1.42l-4.82-4.82A2 2 0 0 0 13.17 2H6Zm7 1.5L18.5 9H14a1 1 0 0 1-1-1V3.5ZM8 12h8a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2Zm0 4h8a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2Z',
+    title: '내보내기',
+    desc: '타임스탬프가 붙은 텍스트(.txt), 자막(.srt), 원본 음성(.wav)으로 저장할 수 있습니다.',
+  },
+  {
+    icon: 'M12 2 4 5.2v6.12c0 4.84 3.32 9.36 8 10.68 4.68-1.32 8-5.84 8-10.68V5.2L12 2Zm3.83 7.09a1 1 0 0 1 .08 1.32l-4.2 5a1 1 0 0 1-1.47.07l-2.3-2.24a1 1 0 0 1 1.4-1.44l1.52 1.49 3.52-4.19a1 1 0 0 1 1.45-.01Z',
+    title: '강제 종료에도 안전',
+    desc: '녹음 중 PC가 꺼지거나 프로그램이 종료돼도 그때까지의 녹음은 보존됩니다.',
+  },
+  {
+    icon: 'M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5Zm0 2h14v2.5H5V5Zm0 4.5h14V19H5V9.5Zm2.75 2a1 1 0 1 0 0 2h5.5a1 1 0 1 0 0-2h-5.5Z',
+    title: '작고 단순한 화면',
+    desc: '작은 창 하나로 녹음·목록·상세 화면만 담았습니다. 설정할 것이 거의 없습니다.',
+  },
 ]
 
 const faq = [
   {
     q: '정말 무료인가요?',
-    a: '네. 기능 제한이나 기간 제한 없이 무료입니다. 이 다운로드 페이지의 광고 수익으로 운영되며, 프로그램 안에는 광고가 없습니다.',
+    a: '네. 기능 제한이나 기간 제한 없이 무료입니다.',
   },
   {
     q: '설치할 때 "Windows의 PC 보호" 경고가 나와요.',
