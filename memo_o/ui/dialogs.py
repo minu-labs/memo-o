@@ -1,28 +1,17 @@
 import os
+from dataclasses import dataclass
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QButtonGroup, QCheckBox, QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QPushButton,
+    QButtonGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QPushButton,
     QRadioButton, QTextBrowser, QVBoxLayout,
 )
 
-from .. import __version__
+from .. import __version__, i18n
+from ..i18n import UI_LANG_NAMES, tr
 from ..paths import data_dir, resource_dir
-from ..stt import MODEL_SIZES, available_models
+from ..stt import DEFAULT_SPEECH_LANG, MODEL_SIZES, SPEECH_LANGUAGES, available_models
 from . import theme
-
-LEGAL_NOTICE = (
-    "<b>녹음 관련 법적 고지</b><br>"
-    "통신비밀보호법에 따라 <b>본인이 참여한 대화</b>의 녹음은 상대방의 동의 없이도 가능하지만, "
-    "<b>본인이 참여하지 않은 타인 간의 대화를 몰래 녹음하는 것은 불법</b>이며 형사처벌 대상입니다. "
-    "녹음 기능의 사용과 그 결과에 대한 책임은 사용자에게 있습니다."
-)
-
-PRIVACY_NOTICE = (
-    "<b>개인정보 보호</b><br>"
-    "MemoO는 인터넷에 연결하지 않습니다. 녹음 파일과 변환된 텍스트는 "
-    "이 PC 안에서만 처리·저장되며 외부 서버로 전송되지 않습니다."
-)
 
 
 def _base(parent, title: str, width: int = 380) -> tuple[QDialog, QVBoxLayout]:
@@ -44,12 +33,12 @@ def _para(html: str) -> QLabel:
 
 
 def first_run_notice(parent) -> bool:
-    d, lay = _base(parent, "MemoO 사용 안내")
-    lay.addWidget(_para("MemoO에 오신 것을 환영합니다. 사용 전에 아래 내용을 확인해주세요."))
-    lay.addWidget(_para(LEGAL_NOTICE))
-    lay.addWidget(_para(PRIVACY_NOTICE))
-    agree = QCheckBox("위 내용을 확인했습니다")
-    ok = QPushButton("시작하기")
+    d, lay = _base(parent, tr("notice.title"))
+    lay.addWidget(_para(tr("notice.welcome")))
+    lay.addWidget(_para(tr("notice.legal")))
+    lay.addWidget(_para(tr("notice.privacy")))
+    agree = QCheckBox(tr("notice.agree"))
+    ok = QPushButton(tr("notice.start"))
     ok.setObjectName("Primary")
     ok.setEnabled(False)
     agree.toggled.connect(ok.setEnabled)
@@ -61,12 +50,12 @@ def first_run_notice(parent) -> bool:
 
 
 def about_dialog(parent) -> None:
-    d, lay = _base(parent, "MemoO 정보", 400)
+    d, lay = _base(parent, tr("menu.about"), 400)
     lay.addWidget(_para(f"<span style='font-size:16px; font-weight:600'>MemoO</span> &nbsp;v{__version__}<br>"
-                        "오프라인 녹음 + 텍스트 변환(STT) 프로그램 · 무료"))
-    lay.addWidget(_para(PRIVACY_NOTICE))
-    lay.addWidget(_para(LEGAL_NOTICE))
-    lay.addWidget(_para("<b>오픈소스 라이선스</b>"))
+                        f"{tr('about.tagline')}"))
+    lay.addWidget(_para(tr("notice.privacy")))
+    lay.addWidget(_para(tr("notice.legal")))
+    lay.addWidget(_para(tr("about.licenses")))
     view = QTextBrowser()
     view.setMinimumHeight(160)
     view.setStyleSheet(
@@ -83,20 +72,47 @@ def about_dialog(parent) -> None:
     d.exec()
 
 
-def settings_dialog(parent, db, stt_device: str) -> tuple[bool, str | None]:
-    """모델/테마 선택. (모델 변경 여부, 변경된 테마 또는 None)을 반환한다."""
-    d, lay = _base(parent, "설정")
+@dataclass
+class SettingsChanges:
+    stt: bool = False            # 모델/음성 언어 변경 → 다음 변환부터 적용
+    theme: str | None = None     # 바뀐 테마
+    ui_lang: bool = False        # 화면 언어 변경 → 재시작 후 적용
+
+
+def _lang_combo(items: list[tuple[str, str]], current: str) -> QComboBox:
+    combo = QComboBox()
+    for code, label in items:
+        combo.addItem(label, code)
+    combo.setCurrentIndex(max(combo.findData(current), 0))
+    return combo
+
+
+def settings_dialog(parent, db, stt_device: str) -> SettingsChanges:
+    """화면 언어/음성 언어/모델/테마 선택. 바뀐 항목을 반환한다."""
+    changes = SettingsChanges()
+    d, lay = _base(parent, tr("menu.settings"))
+
+    lay.addWidget(_para(tr("settings.ui_lang")))
+    current_ui = db.get_setting("ui_lang", "auto")
+    ui_combo = _lang_combo([("auto", tr("settings.ui_auto")), *UI_LANG_NAMES.items()], current_ui)
+    lay.addWidget(ui_combo)
+
+    lay.addWidget(_para(tr("settings.speech_lang")))
+    current_speech = db.get_setting("stt_lang", DEFAULT_SPEECH_LANG)
+    speech_combo = _lang_combo([("auto", tr("settings.speech_auto")), *SPEECH_LANGUAGES.items()],
+                               current_speech)
+    speech_combo.setMaxVisibleItems(12)
+    lay.addWidget(speech_combo)
+    lay.addWidget(_para(f"<span style='color:{theme.TEXT_SUB}'>{tr('settings.speech_help')}</span>"))
+
     current = db.get_setting("model", "small")
     models = available_models()
 
-    lay.addWidget(_para("<b>텍스트 변환 모델</b>"))
+    lay.addWidget(_para(tr("settings.model")))
     group = QButtonGroup(d)
-    desc = {
-        "small": "small — 빠름, 일반 PC 권장",
-        "medium": "medium — 더 정확함, 느림 (고사양 PC 권장)",
-    }
+    desc = {"small": tr("settings.model_small"), "medium": tr("settings.model_medium")}
     for size in MODEL_SIZES:
-        rb = QRadioButton(desc[size] + ("" if size in models else "  (모델 없음)"))
+        rb = QRadioButton(desc[size] + ("" if size in models else tr("settings.model_missing")))
         rb.setEnabled(size in models)
         rb.setChecked(size == current)
         rb.setProperty("modelSize", size)
@@ -104,23 +120,21 @@ def settings_dialog(parent, db, stt_device: str) -> tuple[bool, str | None]:
         lay.addWidget(rb)
 
     user_models = data_dir() / "models"
+    device = "GPU (CUDA)" if stt_device == "cuda" else "CPU"
     lay.addWidget(_para(
-        f"<span style='color:{theme.TEXT_SUB}'>medium 모델은 용량이 커서 기본 설치에 포함되지 않습니다. "
-        f"다운로드 페이지에서 받은 모델 폴더(medium)를 아래 위치에 넣으면 선택할 수 있습니다.<br>"
-        f"{user_models}<br><br>"
-        f"변환 장치: {'GPU (CUDA)' if stt_device == 'cuda' else 'CPU'}</span>"
+        f"<span style='color:{theme.TEXT_SUB}'>{tr('settings.model_help', path=user_models, device=device)}</span>"
     ))
-    open_btn = QPushButton("모델 폴더 열기")
+    open_btn = QPushButton(tr("settings.open_models"))
     open_btn.clicked.connect(lambda: os.startfile(user_models))
     row = QHBoxLayout()
     row.addWidget(open_btn)
     row.addStretch(1)
     lay.addLayout(row)
 
-    lay.addWidget(_para("<b>테마</b>"))
+    lay.addWidget(_para(tr("settings.theme")))
     current_theme = db.get_setting("theme", "light")
     theme_group = QButtonGroup(d)
-    theme_desc = {"light": "라이트 (밝은 배경)", "dark": "다크 (어두운 배경)"}
+    theme_desc = {"light": tr("settings.theme_light"), "dark": tr("settings.theme_dark")}
     for mode in ("light", "dark"):
         rb = QRadioButton(theme_desc[mode])
         rb.setChecked(mode == current_theme)
@@ -129,25 +143,31 @@ def settings_dialog(parent, db, stt_device: str) -> tuple[bool, str | None]:
         lay.addWidget(rb)
 
     bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-    bb.button(QDialogButtonBox.Ok).setText("저장")
-    bb.button(QDialogButtonBox.Cancel).setText("취소")
+    bb.button(QDialogButtonBox.Ok).setText(tr("common.save"))
+    bb.button(QDialogButtonBox.Cancel).setText(tr("common.cancel"))
     bb.accepted.connect(d.accept)
     bb.rejected.connect(d.reject)
     lay.addWidget(bb)
     if d.exec() != QDialog.Accepted:
-        return False, None
+        return changes
 
-    new_theme = None
+    ui_lang = ui_combo.currentData()
+    if ui_lang != current_ui:
+        db.set_setting("ui_lang", ui_lang)
+        changes.ui_lang = i18n.resolve(ui_lang) != i18n.language()
+
+    speech = speech_combo.currentData()
+    if speech != current_speech:
+        db.set_setting("stt_lang", speech)
+        changes.stt = True
+
     theme_checked = theme_group.checkedButton()
     if theme_checked is not None and theme_checked.property("themeMode") != current_theme:
-        new_theme = theme_checked.property("themeMode")
-        db.set_setting("theme", new_theme)
+        changes.theme = theme_checked.property("themeMode")
+        db.set_setting("theme", changes.theme)
 
     checked = group.checkedButton()
-    if checked is None:
-        return False, new_theme
-    size = checked.property("modelSize")
-    if size != current:
-        db.set_setting("model", size)
-        return True, new_theme
-    return False, new_theme
+    if checked is not None and checked.property("modelSize") != current:
+        db.set_setting("model", checked.property("modelSize"))
+        changes.stt = True
+    return changes

@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 
 from .. import __version__
 from .. import db as dbm
+from ..i18n import tr
 from . import theme
 
 
@@ -47,18 +48,18 @@ class TitleBar(QFrame):
         self.rec_indicator = QPushButton()
         self.rec_indicator.setObjectName("RecIndicator")
         self.rec_indicator.setCursor(Qt.PointingHandCursor)
-        self.rec_indicator.setToolTip("녹음 화면으로 돌아가기")
+        self.rec_indicator.setToolTip(tr("tip.back_to_rec"))
         self.rec_indicator.setFocusPolicy(Qt.NoFocus)
         self.rec_indicator.clicked.connect(self.record_indicator_clicked)
         self.rec_indicator.hide()
         lay.addWidget(self.rec_indicator)
 
-        self.menu_btn = self._btn("⋯", "MenuBtn", "메뉴")
+        self.menu_btn = self._btn("⋯", "MenuBtn", tr("tip.menu"))
         self.menu_btn.setStyleSheet("font-size: 14px;")
         self.menu_btn.clicked.connect(self.menu_clicked)
-        self.min_btn = self._btn("—", "MinBtn", "최소화")
-        self.max_btn = self._btn("□", "MaxBtn", "최대화")
-        self.close_btn = self._btn("✕", "CloseBtn", "닫기")
+        self.min_btn = self._btn("—", "MinBtn", tr("tip.minimize"))
+        self.max_btn = self._btn("□", "MaxBtn", tr("tip.maximize"))
+        self.close_btn = self._btn("✕", "CloseBtn", tr("tip.close"))
         for b in (self.menu_btn, self.min_btn, self.max_btn, self.close_btn):
             lay.addWidget(b)
         self.min_btn.clicked.connect(self.minimize_clicked)
@@ -115,7 +116,7 @@ class RecordButton(QAbstractButton):
         self.setCheckable(True)
         self.setFixedSize(self.SIZE + 8, self.SIZE + 8)
         self.setCursor(Qt.PointingHandCursor)
-        self.setToolTip("녹음 시작/중지 (Space)")
+        self.setToolTip(tr("tip.record"))
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(22)
         shadow.setOffset(0, 4)
@@ -186,14 +187,16 @@ class LevelMeter(QWidget):
 
 def status_text(status: str, progress: float | None = None) -> str:
     if status == dbm.DONE:
-        return "완료"
+        return tr("status.done")
     if status == dbm.TRANSCRIBING:
-        return f"변환 중 {progress:.0%}" if progress is not None else "변환 중"
+        if progress is None:
+            return tr("status.transcribing")
+        return tr("status.transcribing_p", p=f"{progress:.0%}")
     if status == dbm.PENDING:
-        return "변환 대기"
+        return tr("status.pending")
     if status == dbm.RECORDING:
-        return "녹음 중"
-    return "오류"
+        return tr("status.recording")
+    return tr("status.error")
 
 
 class StatusBadge(QLabel):

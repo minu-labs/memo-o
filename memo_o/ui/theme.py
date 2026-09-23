@@ -30,7 +30,8 @@ globals().update(LIGHT)
 
 def app_font() -> QFont:
     f = QFont()
-    f.setFamilies(["Segoe UI", "Malgun Gothic"])
+    # 한국어 외 일본어/중국어 변환 텍스트도 깨지지 않도록 CJK 글꼴을 뒤에 둔다
+    f.setFamilies(["Segoe UI", "Malgun Gothic", "Yu Gothic UI", "Microsoft YaHei UI"])
     f.setPixelSize(13)
     return f
 

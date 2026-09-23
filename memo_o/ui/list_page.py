@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..export import fmt_clock
+from ..i18n import tr
 from . import theme
 from .widgets import Card, ClickableRow, StatusBadge, clear_layout, page_widget
 
@@ -33,9 +34,9 @@ class ListPage:
         sl.setContentsMargins(14, 10, 14, 10)
         sl.setSpacing(8)
         self.search = QLineEdit()
-        self.search.setPlaceholderText("검색 (제목, 내용)")
+        self.search.setPlaceholderText(tr("list.search"))
         self.search.setClearButtonEnabled(True)
-        self.new_btn = QPushButton("+ 새 녹음")
+        self.new_btn = QPushButton(tr("list.new"))
         self.new_btn.setObjectName("Primary")
         self.new_btn.setCursor(Qt.PointingHandCursor)
         self.new_btn.clicked.connect(ctx.open_main)
@@ -69,8 +70,8 @@ class ListPage:
         pager = QHBoxLayout()
         pager.setContentsMargins(0, 0, 0, 12)
         pager.setSpacing(8)
-        self.prev_btn = QPushButton("< 이전")
-        self.next_btn = QPushButton("다음 >")
+        self.prev_btn = QPushButton(tr("list.prev"))
+        self.next_btn = QPushButton(tr("list.next"))
         for b in (self.prev_btn, self.next_btn):
             b.setObjectName("PagerBtn")
             b.setCursor(Qt.PointingHandCursor)
@@ -87,7 +88,7 @@ class ListPage:
         root.addLayout(pager)
 
     def title(self) -> str:
-        return "MemoO - 녹음 목록"
+        return tr("list.title")
 
     def _search_changed(self) -> None:
         self.page = 0
@@ -99,8 +100,7 @@ class ListPage:
 
     def _delete(self, rec_id: int, title: str) -> None:
         ans = QMessageBox.question(
-            self.widget, "녹음 삭제",
-            f"'{title}' 녹음과 변환된 텍스트를 삭제할까요?\n삭제한 녹음은 복구할 수 없습니다.",
+            self.widget, tr("del.title"), tr("del.confirm", title=title),
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
         )
         if ans != QMessageBox.Yes:
@@ -121,7 +121,7 @@ class ListPage:
 
     def _sync_new_btn(self) -> None:
         recording = self.ctx.record_page.is_recording
-        self.new_btn.setText("● 녹음으로 돌아가기" if recording else "+ 새 녹음")
+        self.new_btn.setText(tr("list.back_to_rec") if recording else tr("list.new"))
         self.new_btn.setObjectName("Danger" if recording else "Primary")
         self.new_btn.style().unpolish(self.new_btn)
         self.new_btn.style().polish(self.new_btn)
@@ -137,7 +137,7 @@ class ListPage:
         clear_layout(self.rows)
         self.badges.clear()
         if not recs:
-            empty = QLabel("검색 결과가 없습니다." if q.strip() else "아직 녹음이 없습니다.")
+            empty = QLabel(tr("list.no_results") if q.strip() else tr("list.empty"))
             empty.setObjectName("Empty")
             empty.setAlignment(Qt.AlignCenter)
             self.rows.addWidget(empty)
@@ -157,10 +157,10 @@ class ListPage:
             badge = StatusBadge(r.status, self.ctx.stt.progress_of(r.id))
             self.badges[r.id] = badge
             row.lay.addWidget(badge, 0, Qt.AlignVCenter)
-            del_btn = QPushButton("삭제")
+            del_btn = QPushButton(tr("common.delete"))
             del_btn.setObjectName("RowDelete")
             del_btn.setCursor(Qt.PointingHandCursor)
-            del_btn.setToolTip("삭제")
+            del_btn.setToolTip(tr("common.delete"))
             del_btn.setFocusPolicy(Qt.NoFocus)
             del_btn.clicked.connect(lambda _=False, rid=r.id, title=r.title: self._delete(rid, title))
             row.lay.addWidget(del_btn, 0, Qt.AlignVCenter)

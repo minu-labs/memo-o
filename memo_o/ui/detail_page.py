@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from .. import db as dbm
 from ..db import Recording, Segment
 from ..export import fmt_clock, to_srt, to_txt
+from ..i18n import tr
 from . import theme
 from .widgets import page_widget, status_text
 
@@ -58,9 +59,9 @@ class DetailPage:
         cl = QHBoxLayout(ctrl)
         cl.setContentsMargins(16, 12, 16, 12)
         cl.setSpacing(8)
-        self.back_btn = self._ctrl("◀◀", "Ctrl", "10초 뒤로")
-        self.play_btn = self._ctrl("▶", "Play", "재생 / 일시정지")
-        self.fwd_btn = self._ctrl("▶▶", "Ctrl", "10초 앞으로")
+        self.back_btn = self._ctrl("◀◀", "Ctrl", tr("detail.back10"))
+        self.play_btn = self._ctrl("▶", "Play", tr("detail.play"))
+        self.fwd_btn = self._ctrl("▶▶", "Ctrl", tr("detail.fwd10"))
         self.back_btn.clicked.connect(lambda: self._skip(-SKIP_MS))
         self.fwd_btn.clicked.connect(lambda: self._skip(SKIP_MS))
         self.play_btn.clicked.connect(self.toggle_play)
@@ -85,7 +86,7 @@ class DetailPage:
         sfl = QHBoxLayout(sf)
         sfl.setContentsMargins(16, 8, 16, 8)
         self.search = QLineEdit()
-        self.search.setPlaceholderText("내용 검색")
+        self.search.setPlaceholderText(tr("detail.search"))
         self.search.setClearButtonEnabled(True)
         self.search.textChanged.connect(lambda _: self._render())
         sfl.addWidget(self.search)
@@ -105,10 +106,10 @@ class DetailPage:
         bl = QHBoxLayout(bar)
         bl.setContentsMargins(16, 10, 16, 10)
         bl.setSpacing(8)
-        self.export_btn = QPushButton("내보내기")
+        self.export_btn = QPushButton(tr("detail.export"))
         self.export_btn.setObjectName("Primary")
         self.export_btn.setStyleSheet("padding: 8px 6px;")
-        self.delete_btn = QPushButton("삭제")
+        self.delete_btn = QPushButton(tr("common.delete"))
         self.delete_btn.setObjectName("Danger")
         for b in (self.export_btn, self.delete_btn):
             b.setCursor(Qt.PointingHandCursor)
@@ -166,7 +167,7 @@ class DetailPage:
         self.player.pause()
 
     def menu_actions(self, parent) -> list[QAction]:
-        a = QAction("제목 변경", parent)
+        a = QAction(tr("detail.rename"), parent)
         a.triggered.connect(self.rename)
         return [a]
 
@@ -179,7 +180,7 @@ class DetailPage:
     def rename(self) -> None:
         if not self.rec:
             return
-        title, ok = QInputDialog.getText(self.widget, "제목 변경", "새 제목", text=self.rec.title)
+        title, ok = QInputDialog.getText(self.widget, tr("detail.rename"), tr("detail.new_title"), text=self.rec.title)
         if ok and title.strip():
             self.ctx.db.update(self.rec.id, title=title.strip()[:100])
             self.load(self.rec.id)
@@ -189,8 +190,7 @@ class DetailPage:
         if not self.rec:
             return
         ans = QMessageBox.question(
-            self.widget, "녹음 삭제",
-            f"'{self.rec.title}' 녹음과 변환된 텍스트를 삭제할까요?\n삭제한 녹음은 복구할 수 없습니다.",
+            self.widget, tr("del.title"), tr("del.confirm", title=self.rec.title),
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
         )
         if ans != QMessageBox.Yes:
@@ -238,7 +238,7 @@ class DetailPage:
                 f"{text}</a></td></tr>"
             )
         if not rows:
-            body = f"<p style='color:{theme.TEXT_MUTED}; font-size:12px;'>'{html.escape(q)}' 검색 결과가 없습니다.</p>"
+            body = f"<p style='color:{theme.TEXT_MUTED}; font-size:12px;'>{tr('detail.no_match', q=html.escape(q))}</p>"
         else:
             body = ("<table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;"
                     " font-size:12px; line-height:150%;'>" + "".join(rows) + "</table>")
@@ -250,19 +250,18 @@ class DetailPage:
     def _status_html(self, rec: Recording) -> str:
         style = f"color:{theme.TEXT_SUB}; font-size:12px; line-height:160%;"
         if rec.status == dbm.DONE:
-            msg = "인식된 음성이 없습니다."
+            msg = tr("detail.no_speech")
         elif rec.status == dbm.ERROR:
-            msg = (f"텍스트 변환에 실패했습니다.<br><span style='color:{theme.RED}'>"
+            msg = (f"{tr('detail.failed')}<br><span style='color:{theme.RED}'>"
                    f"{html.escape(rec.error or '')}</span><br><br>"
-                   f"<a href='retry:' style='color:{theme.ACCENT}; font-weight:600;'>다시 변환하기</a>")
+                   f"<a href='retry:' style='color:{theme.ACCENT}; font-weight:600;'>{tr('detail.retry')}</a>")
         elif rec.status == dbm.TRANSCRIBING:
             p = self.ctx.stt.progress_of(rec.id)
-            msg = (f"{status_text(rec.status, p)} — 텍스트로 변환하고 있습니다.<br>"
-                   "변환이 끝나면 이 화면에 자동으로 표시됩니다. 녹음은 지금 바로 재생할 수 있습니다.")
+            msg = tr("detail.transcribing", status=status_text(rec.status, p))
         elif rec.status == dbm.PENDING:
-            msg = "변환 대기 중입니다. 앞선 녹음의 변환이 끝나면 자동으로 시작됩니다."
+            msg = tr("detail.pending")
         else:
-            msg = "녹음 중입니다."
+            msg = tr("detail.recording")
         return f"<p style='{style}'>{msg}</p>"
 
     def _on_anchor(self, url: QUrl) -> None:
@@ -302,7 +301,7 @@ class DetailPage:
     def _on_error(self, _err, msg: str) -> None:
         log.warning("재생 오류: %s", msg)
         if self.rec:
-            QMessageBox.warning(self.widget, "재생 오류", f"녹음 파일을 재생할 수 없습니다.\n{msg}")
+            QMessageBox.warning(self.widget, tr("detail.play_error_title"), tr("detail.play_error", msg=msg))
 
     def _slider_released(self) -> None:
         self._seeking = False
@@ -319,11 +318,11 @@ class DetailPage:
         m = QMenu(self.widget)
         done = bool(self.segments)
         for label, fn, enabled in (
-            ("텍스트 파일 (.txt)", self._export_txt, done),
-            ("자막 파일 (.srt)", self._export_srt, done),
-            ("텍스트 복사 (클립보드)", self._copy_text, done),
+            (tr("export.txt"), self._export_txt, done),
+            (tr("export.srt"), self._export_srt, done),
+            (tr("export.copy"), self._copy_text, done),
             (None, None, None),
-            ("음성 파일 (.wav)", self._export_wav, self.rec.file_path.exists()),
+            (tr("export.wav"), self._export_wav, self.rec.file_path.exists()),
         ):
             if label is None:
                 m.addSeparator()
@@ -336,7 +335,7 @@ class DetailPage:
     def _ask_path(self, ext: str, filt: str) -> Path | None:
         default_dir = self.ctx.db.get_setting("export_dir") or str(Path.home() / "Documents")
         name = f"{_safe_filename(self.rec.title)}.{ext}"
-        path, _ = QFileDialog.getSaveFileName(self.widget, "내보내기", str(Path(default_dir) / name), filt)
+        path, _ = QFileDialog.getSaveFileName(self.widget, tr("detail.export"), str(Path(default_dir) / name), filt)
         if not path:
             return None
         self.ctx.db.set_setting("export_dir", str(Path(path).parent))
@@ -346,23 +345,23 @@ class DetailPage:
         try:
             path.write_text(content, encoding="utf-8-sig")
         except OSError as e:
-            QMessageBox.warning(self.widget, "내보내기 실패", str(e))
+            QMessageBox.warning(self.widget, tr("export.failed"), str(e))
 
     def _export_txt(self) -> None:
-        if p := self._ask_path("txt", "텍스트 파일 (*.txt)"):
+        if p := self._ask_path("txt", tr("export.filter_txt")):
             self._write(p, to_txt(self.rec, self.segments))
 
     def _export_srt(self) -> None:
-        if p := self._ask_path("srt", "자막 파일 (*.srt)"):
+        if p := self._ask_path("srt", tr("export.filter_srt")):
             self._write(p, to_srt(self.segments))
 
     def _copy_text(self) -> None:
         QGuiApplication.clipboard().setText(to_txt(self.rec, self.segments))
-        self.ctx.toast("텍스트를 클립보드에 복사했습니다.")
+        self.ctx.toast(tr("export.copied"))
 
     def _export_wav(self) -> None:
-        if p := self._ask_path("wav", "WAV 음성 파일 (*.wav)"):
+        if p := self._ask_path("wav", tr("export.filter_wav")):
             try:
                 shutil.copyfile(self.rec.file_path, p)
             except OSError as e:
-                QMessageBox.warning(self.widget, "내보내기 실패", str(e))
+                QMessageBox.warning(self.widget, tr("export.failed"), str(e))

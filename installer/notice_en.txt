@@ -1,0 +1,22 @@
+MemoO - Notice and License
+
+1. Free software
+MemoO is a free offline recording + speech-to-text (STT) program.
+This software is provided "as is", and the author is not responsible for any results of its use.
+
+2. Privacy
+MemoO never connects to the internet. Recordings and transcripts are processed and stored
+only on this PC and are never sent to an external server. Data location: %LOCALAPPDATA%\MemoO
+
+3. Legal notice on recording
+Laws on recording conversations differ by country and region. Some places allow you to record
+a conversation you take part in, while others require everyone's consent. Secretly recording
+conversations you are not part of is illegal in most places. Check the laws where you live
+before recording. You are responsible for how you use the recording feature and its results.
+
+4. Open-source licenses
+MemoO uses open-source software including faster-whisper (MIT), CTranslate2 (MIT),
+OpenAI Whisper models (MIT), Silero VAD (MIT), ONNX Runtime (MIT), sounddevice/PortAudio (MIT),
+NumPy (BSD), PyAV (BSD), FFmpeg (LGPL), and Qt for Python/PySide6 (LGPLv3).
+See [Menu > About MemoO] in the program, or _internal\THIRD_PARTY_NOTICES.txt in the install folder,
+for the full notices.

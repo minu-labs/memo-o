@@ -4,12 +4,31 @@ from collections.abc import Callable
 from pathlib import Path
 
 from .db import Segment
+from .i18n import tr
 from .paths import model_search_dirs
 
 log = logging.getLogger(__name__)
 
 MODEL_SIZES = ("small", "medium")
 DEFAULT_MODEL = "small"
+
+# 설정에서 고를 수 있는 음성 언어 (Whisper 언어 코드 → 자국어 표기). "auto" = 자동 감지.
+SPEECH_LANGUAGES = {
+    "ko": "한국어", "en": "English", "ja": "日本語", "zh": "中文", "es": "Español",
+    "fr": "Français", "de": "Deutsch", "it": "Italiano", "pt": "Português", "ru": "Русский",
+    "vi": "Tiếng Việt", "th": "ไทย", "id": "Bahasa Indonesia", "tr": "Türkçe",
+    "ar": "العربية", "hi": "हिन्दी",
+}
+DEFAULT_SPEECH_LANG = "auto"
+
+
+def language_options(lang: str | None) -> dict:
+    """음성 언어 설정 → faster-whisper transcribe 인자."""
+    if lang in SPEECH_LANGUAGES:
+        return {"language": lang, "multilingual": False}
+    # 자동: 구간(문장)마다 언어를 다시 감지한다. 한 녹음 안에 여러 언어가
+    # 섞여 있어도(예: 한국어+베트남어) 구간별로 해당 언어로 인식된다.
+    return {"language": None, "multilingual": True}
 
 
 class TranscriptionCancelled(Exception):
@@ -51,9 +70,7 @@ class Transcriber:
     def _load(self, size: str):
         path = find_model(size)
         if path is None:
-            raise FileNotFoundError(
-                f"'{size}' 모델을 찾을 수 없습니다. 설치 폴더 또는 데이터 폴더의 models\\{size} 에 모델 파일을 넣어주세요."
-            )
+            raise FileNotFoundError(tr("stt.model_missing", size=size))
         key = (size, str(path))
         if self._model is not None and self._model_key == key:
             return self._model
@@ -81,13 +98,14 @@ class Transcriber:
         self,
         audio_path: Path,
         size: str = DEFAULT_MODEL,
+        language: str | None = DEFAULT_SPEECH_LANG,
         on_progress: Callable[[float], None] | None = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> list[Segment]:
         model = self._load(size)
         segments, info = model.transcribe(
             str(audio_path),
-            language="ko",
+            **language_options(language),
             beam_size=5,
             vad_filter=True,
             vad_parameters={"min_silence_duration_ms": 2000},

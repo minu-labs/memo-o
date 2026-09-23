@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (
     QFrame, QGraphicsOpacityEffect, QHBoxLayout, QLabel, QPushButton, QWidget,
 )
 
+from ..i18n import tr
 from . import theme
 
 THEMES = {
@@ -23,7 +24,7 @@ class CompactWindow(QWidget):
         super().__init__(parent, Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setObjectName("Compact")
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setWindowTitle("MemoO - 녹음 중")
+        self.setWindowTitle(tr("compact.title"))
         self.setFixedSize(300, 56)
         self._drag_start = None
         self._win_start = None
@@ -59,7 +60,7 @@ class CompactWindow(QWidget):
         self.stop_btn.setObjectName("CompactStop")
         self.stop_btn.setFixedSize(34, 34)
         self.stop_btn.setCursor(Qt.PointingHandCursor)
-        self.stop_btn.setToolTip("녹음 중지")
+        self.stop_btn.setToolTip(tr("rec.stop"))
         self.stop_btn.setFocusPolicy(Qt.NoFocus)
         stop_icon = QFrame(self.stop_btn)
         stop_icon.setFixedSize(12, 12)
@@ -74,7 +75,7 @@ class CompactWindow(QWidget):
         self.min_btn.setObjectName("CompactMin")
         self.min_btn.setFixedSize(34, 34)
         self.min_btn.setCursor(Qt.PointingHandCursor)
-        self.min_btn.setToolTip("작업표시줄로 최소화")
+        self.min_btn.setToolTip(tr("compact.minimize"))
         self.min_btn.setFocusPolicy(Qt.NoFocus)
         self.min_btn.clicked.connect(self.showMinimized)
         lay.addWidget(self.min_btn)

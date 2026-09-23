@@ -1,4 +1,4 @@
-"""STT 스모크 테스트: python -m scripts.smoke_stt <wav> [size]"""
+"""STT 스모크 테스트: python -m scripts.smoke_stt <wav> [size] [lang|auto]"""
 import sys
 import time
 
@@ -7,11 +7,12 @@ from memo_o.stt import Transcriber
 
 path = sys.argv[1]
 size = sys.argv[2] if len(sys.argv) > 2 else "small"
+lang = sys.argv[3] if len(sys.argv) > 3 else "auto"
 t = Transcriber()
 t0 = time.perf_counter()
 t._load(size)
 t1 = time.perf_counter()
-segs = t.transcribe(path, size, on_progress=lambda p: print(f"  progress {p:.0%}"))
+segs = t.transcribe(path, size, lang, on_progress=lambda p: print(f"  progress {p:.0%}"))
 t2 = time.perf_counter()
 print(f"device={t.device} load={t1-t0:.1f}s transcribe={t2-t1:.1f}s")
 for s in segs:

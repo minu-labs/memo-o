@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 
 from .. import db as dbm
 from ..export import fmt_hms
+from ..i18n import tr
 from ..paths import recordings_dir
 from ..recorder import Recorder, list_input_devices
 from .widgets import (
@@ -38,7 +39,7 @@ class RecordPage:
         self.button.clicked.connect(self.toggle)
         root.addWidget(self.button, 0, Qt.AlignHCenter)
 
-        self.btn_label = QLabel("녹음 시작")
+        self.btn_label = QLabel(tr("rec.start"))
         self.btn_label.setObjectName("BtnLabel")
         root.addWidget(self.btn_label, 0, Qt.AlignHCenter)
         root.addSpacing(-8)
@@ -57,7 +58,7 @@ class RecordPage:
 
         mic = QHBoxLayout()
         mic.setSpacing(8)
-        mic_lbl = QLabel("마이크")
+        mic_lbl = QLabel(tr("rec.mic"))
         mic_lbl.setObjectName("Meta")
         self.mic_combo = QComboBox()
         self.mic_combo.setMaximumWidth(300)
@@ -81,7 +82,7 @@ class RecordPage:
         header.setObjectName("CardHeader")
         hl = QHBoxLayout(header)
         hl.setContentsMargins(12, 10, 12, 10)
-        title = QLabel("최근 녹음")
+        title = QLabel(tr("rec.recent"))
         title.setObjectName("CardTitle")
         hl.addWidget(title)
         self.recent.body.addWidget(header)
@@ -92,7 +93,7 @@ class RecordPage:
         root.addSpacing(4)
         root.addWidget(self.recent)
 
-        all_link = link_button("녹음 목록 전체보기 >")
+        all_link = link_button(tr("rec.view_all"))
         all_link.clicked.connect(self.open_list)
         root.addWidget(all_link, 0, Qt.AlignHCenter)
         root.addStretch(1)
@@ -117,7 +118,7 @@ class RecordPage:
         self.badges = {}
         recs = self.ctx.db.list(limit=RECENT_COUNT)
         if not recs:
-            empty = QLabel("아직 녹음이 없습니다. 버튼을 눌러 첫 메모를 남겨보세요.")
+            empty = QLabel(tr("rec.empty"))
             empty.setObjectName("Empty")
             empty.setWordWrap(True)
             self.recent_rows.addWidget(empty)
@@ -132,7 +133,7 @@ class RecordPage:
                 badge = StatusBadge(r.status, self.ctx.stt.progress_of(r.id))
                 self.badges[r.id] = badge
                 row.lay.addWidget(badge)
-            open_lbl = QLabel("열기")
+            open_lbl = QLabel(tr("rec.open"))
             open_lbl.setObjectName("Link")
             row.lay.addWidget(open_lbl)
             row.set_last(i == len(recs) - 1)
@@ -179,15 +180,14 @@ class RecordPage:
             log.exception("녹음 시작 실패")
             self.button.setChecked(False)
             path.unlink(missing_ok=True)
-            QMessageBox.warning(self.widget, "녹음 시작 실패",
-                                f"마이크를 열 수 없습니다.\n마이크 연결과 Windows 개인정보 설정(마이크 접근 허용)을 확인해주세요.\n\n{e}")
+            QMessageBox.warning(self.widget, tr("rec.start_failed_title"), tr("rec.start_failed", e=e))
             return
         self.ctx.db.set_setting("mic_name", self.mic_combo.currentText())
         self.recorder = rec
-        self.rec_id = self.ctx.db.create_recording(f"녹음 {now:%m-%d %H:%M}", path, now)
+        self.rec_id = self.ctx.db.create_recording(tr("rec.default_title", date=f"{now:%m-%d %H:%M}"), path, now)
         self.button.setChecked(True)
-        self.btn_label.setText("녹음 중지")
-        self.status_lbl.setText("상태: <b>녹음 중...</b>")
+        self.btn_label.setText(tr("rec.stop"))
+        self.status_lbl.setText(tr("rec.status_recording"))
         self.mic_combo.setEnabled(False)
         self.level_meter.set_level(0.0)
         self.level_meter.show()
@@ -209,29 +209,28 @@ class RecordPage:
         self.ctx.db.update(rid, duration=duration)
         if ask_title:
             rec = self.ctx.db.get(rid)
-            title, ok = QInputDialog.getText(self.widget, "녹음 저장", "제목을 입력하세요", text=rec.title)
+            title, ok = QInputDialog.getText(self.widget, tr("rec.save_title"), tr("rec.enter_title"), text=rec.title)
             if ok and title.strip():
                 self.ctx.db.update(rid, title=title.strip()[:100])
         self.ctx.stt.enqueue(rid)
         self.ctx.recording_state_changed(False)
         self.refresh()
         if failed_msg:
-            QMessageBox.warning(self.widget, "녹음 중단",
-                                f"{failed_msg}\n그때까지 녹음된 내용은 저장되었습니다.")
+            QMessageBox.warning(self.widget, tr("rec.interrupted_title"), tr("rec.interrupted", msg=failed_msg))
 
     # --- 내부 ---
     def _set_idle_ui(self) -> None:
         self.button.setChecked(False)
-        self.btn_label.setText("녹음 시작")
-        self.status_lbl.setText("상태: <b>대기 중</b>")
-        self.time_lbl.setText("시간: <b>00:00:00</b>")
+        self.btn_label.setText(tr("rec.start"))
+        self.status_lbl.setText(tr("rec.status_idle"))
+        self.time_lbl.setText(tr("rec.time", t="00:00:00"))
         self.mic_combo.setEnabled(True)
         self.level_meter.hide()
 
     def _tick(self) -> None:
         if not self.recorder:
             return
-        self.time_lbl.setText(f"시간: <b>{fmt_hms(self.recorder.elapsed)}</b>")
+        self.time_lbl.setText(tr("rec.time", t=fmt_hms(self.recorder.elapsed)))
         self.ctx.update_recording_time(self.recorder.elapsed)
         self.level_meter.set_level(self.recorder.level)
         if self.recorder.failed:

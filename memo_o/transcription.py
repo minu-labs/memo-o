@@ -7,7 +7,8 @@ from PySide6.QtCore import QObject, Signal
 
 from . import db as dbm
 from .db import Database
-from .stt import DEFAULT_MODEL, Transcriber, TranscriptionCancelled
+from .i18n import tr
+from .stt import DEFAULT_MODEL, DEFAULT_SPEECH_LANG, Transcriber, TranscriptionCancelled
 from .wavfile import repair
 
 log = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class TranscriptionService(QObject):
                 log.info("녹음 복구: %s (%.1fs)", rec.file_path, duration)
             except Exception as e:
                 log.exception("녹음 복구 실패: %s", rec.file_path)
-                self.db.update(rid, status=dbm.ERROR, error=f"녹음 파일 복구 실패: {e}")
+                self.db.update(rid, status=dbm.ERROR, error=tr("stt.recover_failed", e=e))
 
     def enqueue(self, rec_id: int) -> None:
         self._cancel_ids.discard(rec_id)
@@ -91,6 +92,7 @@ class TranscriptionService(QObject):
     def _transcribe(self, rec: dbm.Recording) -> None:
         rid = rec.id
         size = self.db.get_setting("model", DEFAULT_MODEL)
+        lang = self.db.get_setting("stt_lang", DEFAULT_SPEECH_LANG)
         self._current = rid
         self._progress[rid] = 0.0
         self.db.update(rid, status=dbm.TRANSCRIBING)
@@ -125,11 +127,11 @@ class TranscriptionService(QObject):
         estimator.start()
         try:
             if not rec.file_path.exists():
-                raise FileNotFoundError("녹음 파일이 없습니다.")
+                raise FileNotFoundError(tr("stt.file_missing"))
             if rec.duration < MIN_DURATION:
                 segments = []
             else:
-                segments = self._transcriber.transcribe(rec.file_path, size, on_progress, cancelled)
+                segments = self._transcriber.transcribe(rec.file_path, size, lang, on_progress, cancelled)
             if self.db.get(rid) is not None:
                 self.db.save_transcript(rid, segments, size)
         except TranscriptionCancelled:

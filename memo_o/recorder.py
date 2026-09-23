@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import sounddevice as sd
 
+from .i18n import tr
 from .wavfile import CrashSafeWavWriter
 
 PREFERRED_RATE = 16000  # Whisper 입력 샘플레이트. 음성 녹음엔 충분하고 용량도 작다.
@@ -27,7 +28,7 @@ def _hostapi_index(name: str) -> int | None:
 
 def list_input_devices() -> list[InputDevice]:
     """MME 장치로 녹음(샘플레이트/채널 변환 지원). MME는 이름이 31자로 잘려 WASAPI 이름으로 보완."""
-    devices = [InputDevice(None, "기본 마이크")]
+    devices = [InputDevice(None, tr("mic.default"))]
     try:
         all_devs = sd.query_devices()
     except Exception:
@@ -91,7 +92,7 @@ class Recorder:
     def _finished(self) -> None:
         if self._stream is not None and not self._stopping:
             self._stopped_unexpectedly = True
-            self.error = "마이크 입력이 중단되었습니다."
+            self.error = tr("mic.interrupted")
 
     def _drain(self) -> None:
         while True:

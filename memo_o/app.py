@@ -3,12 +3,13 @@ import sys
 import traceback
 from logging.handlers import RotatingFileHandler
 
-from PySide6.QtCore import QLockFile, Qt
+from PySide6.QtCore import QLibraryInfo, QLockFile, Qt, QTranslator
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
 
-from . import APP_NAME, __version__
+from . import APP_NAME, __version__, i18n
 from .db import Database
+from .i18n import tr
 from .paths import data_dir, db_path, resource_dir
 from .transcription import TranscriptionService
 
@@ -29,7 +30,7 @@ def _setup_logging() -> None:
 def _excepthook(exc_type, exc, tb) -> None:
     log.error("처리되지 않은 오류:\n%s", "".join(traceback.format_exception(exc_type, exc, tb)))
     if QApplication.instance():
-        QMessageBox.critical(None, APP_NAME, f"예상치 못한 오류가 발생했습니다.\n{exc}\n\n로그: {data_dir() / 'memo-o.log'}")
+        QMessageBox.critical(None, APP_NAME, tr("app.unhandled_error", exc=exc, log=data_dir() / "memo-o.log"))
 
 
 def main() -> int:
@@ -43,6 +44,13 @@ def main() -> int:
     app.setApplicationVersion(__version__)
     app.setStyle("Fusion")
 
+    db = Database(db_path())
+    i18n.set_language(i18n.resolve(db.get_setting("ui_lang")))
+    # QMessageBox 예/아니요 등 Qt 기본 버튼 문구 번역 (없으면 영어로 표시)
+    qt_tr = QTranslator(app)
+    if qt_tr.load(f"qtbase_{i18n.language()}", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
+        app.installTranslator(qt_tr)
+
     from .ui import theme
     app.setFont(theme.app_font())
     icon = resource_dir() / "memo-o.ico"
@@ -52,10 +60,10 @@ def main() -> int:
     lock = QLockFile(str(data_dir() / "memo-o.lock"))
     lock.setStaleLockTime(0)
     if not lock.tryLock(100):
-        QMessageBox.information(None, APP_NAME, "MemoO가 이미 실행 중입니다.")
+        QMessageBox.information(None, APP_NAME, tr("app.already_running"))
+        db.close()
         return 0
 
-    db = Database(db_path())
     app.setStyleSheet(theme.set_mode(db.get_setting("theme", "light")))
     stt = TranscriptionService(db)
     stt.start()

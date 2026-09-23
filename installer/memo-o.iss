@@ -31,12 +31,17 @@ Compression=lzma2/max
 SolidCompression=yes
 LZMANumBlockThreads=4
 WizardStyle=modern
+; Windows 표시 언어로 자동 선택 (한국어가 아니면 영어)
 ShowLanguageDialog=no
 CloseApplications=yes
-LicenseFile=notice_ko.txt
 
 [Languages]
-Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "notice_en.txt"
+Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"; LicenseFile: "notice_ko.txt"
+
+[CustomMessages]
+english.DeleteDataPrompt=Also delete your recordings and transcripts?%n(%1)%n%nChoose [No] to keep them for the next install.
+korean.DeleteDataPrompt=녹음 파일과 변환된 텍스트도 함께 삭제할까요?%n(%1)%n%n[아니요]를 선택하면 다음 설치 때 그대로 사용할 수 있습니다.
 
 [Tasks]
 ; 바탕화면 아이콘은 기본으로 생성 (체크 해제 가능)
@@ -65,9 +70,7 @@ begin
   begin
     DataDir := ExpandConstant('{localappdata}\MemoO');
     if DirExists(DataDir) then
-      if MsgBox('녹음 파일과 변환된 텍스트도 함께 삭제할까요?' + #13#10 +
-                '(' + DataDir + ')' + #13#10#13#10 +
-                '[아니요]를 선택하면 다음 설치 때 그대로 사용할 수 있습니다.',
+      if MsgBox(FmtMessage(CustomMessage('DeleteDataPrompt'), [DataDir]),
                 mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
         DelTree(DataDir, True, True, True);
   end;

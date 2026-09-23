@@ -1,6 +1,6 @@
 """UI 스모크 테스트: 임시 데이터 폴더에 샘플을 넣고 실제 변환 파이프라인을 돌린 뒤 각 화면을 캡처한다.
 
-python -m scripts.ui_smoke  → shots/*.png
+python -m scripts.ui_smoke [ko|en]  → shots/*.png (en 이면 shots/*_en.png)
 """
 import os
 import shutil
@@ -16,14 +16,18 @@ from PySide6.QtCore import QTimer  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
 from memo_o import db as dbm  # noqa: E402
+from memo_o import i18n  # noqa: E402
 from memo_o.db import Database, Segment  # noqa: E402
 from memo_o.paths import db_path, recordings_dir  # noqa: E402
 from memo_o.transcription import TranscriptionService  # noqa: E402
 from memo_o.ui import theme  # noqa: E402
+from memo_o.ui.dialogs import settings_dialog  # noqa: E402
 from memo_o.ui.main_window import MainWindow  # noqa: E402
 
 SHOTS = ROOT / "shots"
 SHOTS.mkdir(exist_ok=True)
+LANG = sys.argv[1] if len(sys.argv) > 1 else "ko"
+SUFFIX = "" if LANG == "ko" else f"_{LANG}"
 
 
 def seed(db: Database) -> int:
@@ -57,10 +61,11 @@ def seed(db: Database) -> int:
 
 
 def main() -> None:
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv[:1])
+    i18n.set_language(LANG)
     app.setStyle("Fusion")
     app.setFont(theme.app_font())
-    app.setStyleSheet(theme.QSS)
+    app.setStyleSheet(theme.set_mode("light"))
     db = Database(db_path())
     db.set_setting("notice_ack", "1")
     rid = seed(db)
@@ -74,7 +79,7 @@ def main() -> None:
 
     def shot(name):
         app.processEvents()
-        win.grab().save(str(SHOTS / f"{name}.png"))
+        win.grab().save(str(SHOTS / f"{name}{SUFFIX}.png"))
         print("shot", name)
 
     def wait_done():
@@ -124,12 +129,21 @@ def main() -> None:
         rec = db.list(limit=1)[0]
         print("recorded:", rec.title, f"{rec.duration:.2f}s", rec.status, rec.file_path.exists())
 
+    def settings():
+        def grab_and_close():
+            d = QApplication.activeModalWidget()
+            d.grab().save(str(SHOTS / f"4_settings{SUFFIX}.png"))
+            print("shot 4_settings")
+            d.reject()
+        QTimer.singleShot(400, grab_and_close)
+        settings_dialog(win, db, stt.device)
+
     def finish():
         stt.shutdown()
         app.quit()
 
     steps[:] = [main_idle, wait_done, list_page, list_search, detail, detail_search, detail_error,
-                recording, stop_recording, finish]
+                recording, stop_recording, settings, finish]
 
     def run_next():
         if steps:

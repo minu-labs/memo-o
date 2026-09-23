@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 
 from ..db import Database
 from ..export import fmt_hms
+from ..i18n import tr
 from ..paths import data_dir
 from ..transcription import TranscriptionService
 from . import theme
@@ -95,7 +96,7 @@ class MainWindow(QWidget):
 
     def open_recording(self, rec_id: int) -> None:
         if not self.detail_page.load(rec_id):
-            self.toast("녹음을 찾을 수 없습니다.")
+            self.toast(tr("rec.not_found"))
             self.open_list()
             return
         self._show(self.detail_page)
@@ -106,7 +107,7 @@ class MainWindow(QWidget):
         else:
             self.title_bar.set_title(self.current.title())
         if self.record_page.is_recording:
-            self.setWindowTitle("● 녹음 중 - MemoO")
+            self.setWindowTitle(tr("win.recording_title"))
         else:
             self.setWindowTitle(self.current.title() or "MemoO")
 
@@ -182,29 +183,31 @@ class MainWindow(QWidget):
                 m.addAction(a)
             m.addSeparator()
         if self.record_page.is_recording:
-            m.addAction("컴팩트 모드로 전환", self._enter_compact_mode)
-        m.addAction("설정", self._settings)
-        m.addAction("마이크 목록 새로고침", self._reload_mics)
-        m.addAction("데이터 폴더 열기", lambda: os.startfile(data_dir()))
+            m.addAction(tr("menu.compact"), self._enter_compact_mode)
+        m.addAction(tr("menu.settings"), self._settings)
+        m.addAction(tr("menu.reload_mics"), self._reload_mics)
+        m.addAction(tr("menu.open_data"), lambda: os.startfile(data_dir()))
         m.addSeparator()
-        m.addAction("MemoO 정보", lambda: about_dialog(self))
+        m.addAction(tr("menu.about"), lambda: about_dialog(self))
         btn = self.title_bar.menu_btn
         m.exec(btn.mapToGlobal(QPoint(btn.width() - m.sizeHint().width(), btn.height())))
 
     def _settings(self) -> None:
-        model_changed, new_theme = settings_dialog(self, self.db, self.stt.device)
-        if new_theme:
-            QApplication.instance().setStyleSheet(theme.set_mode(new_theme))
-            self.compact.set_theme(new_theme)
-        if model_changed:
-            self.toast("다음 변환부터 새 모델이 적용됩니다.")
+        changes = settings_dialog(self, self.db, self.stt.device)
+        if changes.theme:
+            QApplication.instance().setStyleSheet(theme.set_mode(changes.theme))
+            self.compact.set_theme(changes.theme)
+        if changes.ui_lang:
+            QMessageBox.information(self, tr("menu.settings"), tr("settings.restart"))
+        if changes.stt:
+            self.toast(tr("toast.stt_settings"))
 
     def _reload_mics(self) -> None:
         if self.record_page.is_recording:
-            self.toast("녹음 중에는 마이크를 바꿀 수 없습니다.")
+            self.toast(tr("toast.mic_busy"))
             return
         self.record_page.reload_devices()
-        self.toast("마이크 목록을 새로 불러왔습니다.")
+        self.toast(tr("toast.mics_reloaded"))
 
     def _space(self) -> None:
         if self.current is self.record_page:
@@ -220,7 +223,7 @@ class MainWindow(QWidget):
     def closeEvent(self, e) -> None:
         if self.record_page.is_recording:
             ans = QMessageBox.question(
-                self, "녹음 중", "녹음 중입니다. 녹음을 저장하고 종료할까요?",
+                self, tr("quit.title"), tr("quit.confirm"),
                 QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Yes,
             )
             if ans != QMessageBox.Yes:
@@ -234,5 +237,5 @@ class MainWindow(QWidget):
     def changeEvent(self, e) -> None:
         if e.type() == QEvent.WindowStateChange:
             self.title_bar.max_btn.setText("❐" if self.isMaximized() else "□")
-            self.title_bar.max_btn.setToolTip("이전 크기로" if self.isMaximized() else "최대화")
+            self.title_bar.max_btn.setToolTip(tr("tip.restore") if self.isMaximized() else tr("tip.maximize"))
         super().changeEvent(e)
