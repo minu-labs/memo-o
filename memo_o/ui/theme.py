@@ -115,6 +115,15 @@ QPushButton#Primary {{
 }}
 QPushButton#Primary:hover {{ background: {ACCENT_HOVER}; }}
 QPushButton#Primary:disabled {{ background: {PRIMARY_DISABLED}; }}
+QPushButton#Secondary {{
+    background: {ACCENT_SOFT}; color: {ACCENT}; border: none; border-radius: 6px;
+    padding: 6px 12px; font-size: 12px; font-weight: 600;
+}}
+QPushButton#Secondary:hover {{ background: {CTRL_HOVER}; }}
+QLabel#DropOverlay {{
+    background: {ACCENT_SOFT}; color: {ACCENT}; border: 2px dashed {ACCENT}; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+}}
 QPushButton#Danger {{
     background: {RED_SOFT}; color: {RED}; border: none; border-radius: 6px;
     padding: 8px 6px; font-size: 12px; font-weight: 600;

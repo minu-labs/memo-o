@@ -99,11 +99,12 @@ class Database:
         )
 
     # --- recordings ---
-    def create_recording(self, title: str, file_path: Path, created_at: datetime) -> int:
+    def create_recording(self, title: str, file_path: Path, created_at: datetime,
+                         duration: float = 0, status: str = RECORDING) -> int:
         with self._conn() as c:
             cur = c.execute(
-                "INSERT INTO recordings (title, created_at, file_path, status) VALUES (?, ?, ?, ?)",
-                (title, created_at.isoformat(timespec="seconds"), str(file_path), RECORDING),
+                "INSERT INTO recordings (title, created_at, duration, file_path, status) VALUES (?, ?, ?, ?, ?)",
+                (title, created_at.isoformat(timespec="seconds"), duration, str(file_path), status),
             )
             return cur.lastrowid
 

@@ -133,3 +133,44 @@ def test_service_recovers_crashed_recording(db, tmp_path):
     assert rec.status == dbm.PENDING and rec.duration == pytest.approx(2.0)
     assert _frames(wav)[0] == 32000
     assert db.get(missing).status == dbm.ERROR
+
+
+def _write_wav(path, seconds=1.0, rate=16000):
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(b"\x00\x00" * int(rate * seconds))
+
+
+def test_import_audio_copies_and_queues(db, tmp_path):
+    from memo_o.importer import import_audio
+
+    src = tmp_path / "강의 노트.WAV"
+    _write_wav(src, 1.5)
+    now = datetime(2026, 10, 1, 9, 0)
+    a = import_audio(db, src, now)
+    b = import_audio(db, src, now)  # 같은 시각에 여러 개 가져와도 파일명이 겹치지 않는다
+
+    rec = db.get(a)
+    assert rec.title == "강의 노트" and rec.status == dbm.PENDING
+    assert rec.duration == pytest.approx(1.5)
+    assert rec.file_path.suffix == ".wav" and rec.file_path.read_bytes() == src.read_bytes()
+    assert rec.file_path != src and rec.file_path != db.get(b).file_path
+    assert src.exists()  # 원본은 그대로
+
+
+def test_import_audio_rejects_bad_files(db, tmp_path):
+    from memo_o.importer import import_audio
+    from memo_o.paths import recordings_dir
+
+    before = set(recordings_dir().iterdir())
+    txt = tmp_path / "memo.txt"
+    txt.write_text("hello")
+    fake = tmp_path / "broken.mp3"
+    fake.write_bytes(b"not audio at all" * 10)
+    for p in (txt, fake):
+        with pytest.raises(ValueError):
+            import_audio(db, p)
+    assert db.count() == 0
+    assert set(recordings_dir().iterdir()) == before  # 실패한 파일은 복사되지 않는다

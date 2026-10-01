@@ -86,6 +86,7 @@ _STRINGS: dict[str, dict[str, str]] = {
     "menu.settings": {"ko": "설정", "en": "Settings"},
     "menu.reload_mics": {"ko": "마이크 목록 새로고침", "en": "Refresh microphone list"},
     "menu.open_data": {"ko": "데이터 폴더 열기", "en": "Open data folder"},
+    "menu.import": {"ko": "파일 가져오기...", "en": "Import files..."},
     "menu.about": {"ko": "MemoO 정보", "en": "About MemoO"},
     "toast.stt_settings": {
         "ko": "다음 변환부터 새 설정이 적용됩니다.",
@@ -140,6 +141,11 @@ _STRINGS: dict[str, dict[str, str]] = {
     "list.title": {"ko": "MemoO - 녹음 목록", "en": "MemoO - Recordings"},
     "list.search": {"ko": "검색 (제목, 내용)", "en": "Search (title, text)"},
     "list.new": {"ko": "+ 새 녹음", "en": "+ New"},
+    "list.import": {"ko": "가져오기", "en": "Import"},
+    "list.import_tip": {
+        "ko": "PC의 음성·영상 파일을 텍스트로 변환합니다 (창에 끌어다 놓아도 됩니다)",
+        "en": "Transcribe audio or video files from your PC (you can also drag them onto the window)",
+    },
     "list.back_to_rec": {"ko": "● 녹음으로 돌아가기", "en": "● Back to recording"},
     "list.prev": {"ko": "< 이전", "en": "< Prev"},
     "list.next": {"ko": "다음 >", "en": "Next >"},
@@ -149,6 +155,35 @@ _STRINGS: dict[str, dict[str, str]] = {
     "del.confirm": {
         "ko": "'{title}' 녹음과 변환된 텍스트를 삭제할까요?\n삭제한 녹음은 복구할 수 없습니다.",
         "en": "Delete '{title}' and its transcript?\nDeleted recordings can't be recovered.",
+    },
+
+    # --- 파일 가져오기 ---
+    "import.dialog": {"ko": "변환할 파일 선택", "en": "Choose files to transcribe"},
+    "import.filter_media": {"ko": "음성·영상 파일 ({exts})", "en": "Audio and video files ({exts})"},
+    "import.filter_all": {"ko": "모든 파일 (*.*)", "en": "All files (*.*)"},
+    "import.drop_hint": {
+        "ko": "여기에 놓으면 텍스트로 변환합니다",
+        "en": "Drop here to transcribe",
+    },
+    "import.started": {"ko": "파일 {n}개를 가져오는 중...", "en": "Importing {n} file(s)..."},
+    "import.busy": {
+        "ko": "이전 파일을 가져오는 중입니다. 잠시 후 다시 시도해주세요.",
+        "en": "Still importing the previous files. Try again in a moment.",
+    },
+    "import.done": {
+        "ko": "파일 {n}개를 가져왔습니다. 차례로 텍스트로 변환합니다.",
+        "en": "Imported {n} file(s). They will be transcribed in order.",
+    },
+    "import.failed_title": {"ko": "가져오기 실패", "en": "Import failed"},
+    "import.failed": {
+        "ko": "다음 파일을 가져오지 못했습니다.\n\n{files}",
+        "en": "The following files couldn't be imported.\n\n{files}",
+    },
+    "import.unsupported": {"ko": "지원하지 않는 파일 형식입니다.", "en": "This file type isn't supported."},
+    "import.no_audio": {"ko": "소리가 들어 있지 않은 파일입니다.", "en": "This file has no audio."},
+    "import.unreadable": {
+        "ko": "파일을 읽을 수 없습니다. 손상되었거나 지원하지 않는 형식일 수 있습니다.",
+        "en": "Couldn't read the file. It may be damaged or in an unsupported format.",
     },
 
     # --- 화면 3. 상세 ---
@@ -179,10 +214,10 @@ _STRINGS: dict[str, dict[str, str]] = {
     "export.txt": {"ko": "텍스트 파일 (.txt)", "en": "Text file (.txt)"},
     "export.srt": {"ko": "자막 파일 (.srt)", "en": "Subtitle file (.srt)"},
     "export.copy": {"ko": "텍스트 복사 (클립보드)", "en": "Copy text (clipboard)"},
-    "export.wav": {"ko": "음성 파일 (.wav)", "en": "Audio file (.wav)"},
+    "export.audio": {"ko": "음성 파일 ({ext})", "en": "Audio file ({ext})"},
     "export.filter_txt": {"ko": "텍스트 파일 (*.txt)", "en": "Text files (*.txt)"},
     "export.filter_srt": {"ko": "자막 파일 (*.srt)", "en": "Subtitle files (*.srt)"},
-    "export.filter_wav": {"ko": "WAV 음성 파일 (*.wav)", "en": "WAV audio files (*.wav)"},
+    "export.filter_audio": {"ko": "음성 파일 (*{ext})", "en": "Audio files (*{ext})"},
     "export.failed": {"ko": "내보내기 실패", "en": "Export failed"},
     "export.copied": {"ko": "텍스트를 클립보드에 복사했습니다.", "en": "Text copied to the clipboard."},
 

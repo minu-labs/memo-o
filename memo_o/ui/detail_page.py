@@ -88,6 +88,7 @@ class DetailPage:
         self.search = QLineEdit()
         self.search.setPlaceholderText(tr("detail.search"))
         self.search.setClearButtonEnabled(True)
+        self.search.setAcceptDrops(False)
         self.search.textChanged.connect(lambda _: self._render())
         sfl.addWidget(self.search)
         root.addWidget(sf)
@@ -322,7 +323,8 @@ class DetailPage:
             (tr("export.srt"), self._export_srt, done),
             (tr("export.copy"), self._copy_text, done),
             (None, None, None),
-            (tr("export.wav"), self._export_wav, self.rec.file_path.exists()),
+            (tr("export.audio", ext=self.rec.file_path.suffix.lower()), self._export_audio,
+             self.rec.file_path.exists()),
         ):
             if label is None:
                 m.addSeparator()
@@ -359,8 +361,9 @@ class DetailPage:
         QGuiApplication.clipboard().setText(to_txt(self.rec, self.segments))
         self.ctx.toast(tr("export.copied"))
 
-    def _export_wav(self) -> None:
-        if p := self._ask_path("wav", tr("export.filter_wav")):
+    def _export_audio(self) -> None:
+        ext = self.rec.file_path.suffix.lower()
+        if p := self._ask_path(ext.lstrip("."), tr("export.filter_audio", ext=ext)):
             try:
                 shutil.copyfile(self.rec.file_path, p)
             except OSError as e:

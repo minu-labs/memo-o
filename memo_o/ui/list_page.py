@@ -36,11 +36,18 @@ class ListPage:
         self.search = QLineEdit()
         self.search.setPlaceholderText(tr("list.search"))
         self.search.setClearButtonEnabled(True)
+        self.search.setAcceptDrops(False)  # 파일을 끌어다 놓으면 창 전체의 가져오기로 처리
         self.new_btn = QPushButton(tr("list.new"))
         self.new_btn.setObjectName("Primary")
         self.new_btn.setCursor(Qt.PointingHandCursor)
         self.new_btn.clicked.connect(ctx.open_main)
+        self.import_btn = QPushButton(tr("list.import"))
+        self.import_btn.setObjectName("Secondary")
+        self.import_btn.setCursor(Qt.PointingHandCursor)
+        self.import_btn.setToolTip(tr("list.import_tip"))
+        self.import_btn.clicked.connect(ctx.choose_import_files)
         sl.addWidget(self.search, 1)
+        sl.addWidget(self.import_btn)
         sl.addWidget(self.new_btn)
         root.addWidget(strip)
 

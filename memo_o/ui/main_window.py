@@ -1,14 +1,18 @@
+import logging
 import os
+import threading
+from pathlib import Path
 
-from PySide6.QtCore import QEvent, QPoint, Qt, QTimer
+from PySide6.QtCore import QEvent, QPoint, Qt, QTimer, Signal
 from PySide6.QtGui import QGuiApplication, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QApplication, QLabel, QMenu, QMessageBox, QStackedWidget, QVBoxLayout, QWidget,
+    QApplication, QFileDialog, QLabel, QMenu, QMessageBox, QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from ..db import Database
 from ..export import fmt_hms
 from ..i18n import tr
+from ..importer import AUDIO_EXTS, import_audio, is_supported
 from ..paths import data_dir
 from ..transcription import TranscriptionService
 from . import theme
@@ -20,8 +24,12 @@ from .record_page import RecordPage
 from .edge_resize import EdgeResizer
 from .widgets import TitleBar
 
+log = logging.getLogger(__name__)
+
 
 class MainWindow(QWidget):
+    _import_finished = Signal(list, list)  # (가져온 녹음 id, 실패 메시지)
+
     def __init__(self, db: Database, stt: TranscriptionService):
         super().__init__()
         self.db = db
@@ -71,6 +79,16 @@ class MainWindow(QWidget):
         esc.activated.connect(self._escape)
 
         self._resizer = EdgeResizer(self)
+
+        # 파일 가져오기 (버튼/메뉴 또는 창에 드래그 앤 드롭)
+        self.setAcceptDrops(True)
+        self._drop_overlay = QLabel(tr("import.drop_hint"), self)
+        self._drop_overlay.setObjectName("DropOverlay")
+        self._drop_overlay.setAlignment(Qt.AlignCenter)
+        self._drop_overlay.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._drop_overlay.hide()
+        self._importing = False
+        self._import_finished.connect(self._on_import_finished)
 
         self.compact = CompactWindow()
         self.compact.restore_clicked.connect(self._restore_from_compact)
@@ -175,6 +193,81 @@ class MainWindow(QWidget):
         elif self.current is self.record_page:
             self.record_page.on_progress(rec_id, p)
 
+    # --- 파일 가져오기 ---
+    def choose_import_files(self) -> None:
+        default_dir = self.db.get_setting("import_dir") or str(Path.home())
+        exts = " ".join(f"*{e}" for e in AUDIO_EXTS)
+        filters = f"{tr('import.filter_media', exts=exts)};;{tr('import.filter_all')}"
+        paths, _ = QFileDialog.getOpenFileNames(self, tr("import.dialog"), default_dir, filters)
+        if paths:
+            self.db.set_setting("import_dir", str(Path(paths[0]).parent))
+            self.import_files([Path(p) for p in paths])
+
+    def import_files(self, paths: list[Path]) -> None:
+        if not paths:
+            return
+        if self._importing:
+            self.toast(tr("import.busy"))
+            return
+        self._importing = True
+        self.toast(tr("import.started", n=len(paths)), 60_000)
+
+        def work() -> None:
+            ids, failed = [], []
+            try:
+                for p in paths:
+                    try:
+                        ids.append(import_audio(self.db, p))
+                    except Exception as e:
+                        log.warning("가져오기 실패: %s (%s)", p, e)
+                        failed.append(f"{p.name}: {e}")
+            finally:
+                self.db.close()  # 이 스레드의 DB 연결
+                self._import_finished.emit(ids, failed)
+
+        threading.Thread(target=work, name="memoo-import", daemon=True).start()
+
+    def _on_import_finished(self, ids: list, failed: list) -> None:
+        self._importing = False
+        self._toast.hide()
+        for rid in ids:
+            self.stt.enqueue(rid)
+        if ids:
+            self.open_list()
+            self.toast(tr("import.done", n=len(ids)), 3000)
+        if failed:
+            QMessageBox.warning(self, tr("import.failed_title"), tr("import.failed", files="\n".join(failed)))
+
+    @staticmethod
+    def _dropped_files(e) -> list[Path]:
+        md = e.mimeData()
+        if not md.hasUrls():
+            return []
+        return [Path(u.toLocalFile()) for u in md.urls() if u.isLocalFile() and is_supported(Path(u.toLocalFile()))]
+
+    def dragEnterEvent(self, e) -> None:
+        if self._dropped_files(e):
+            e.acceptProposedAction()
+            r = self.stack.geometry().adjusted(12, 12, -12, -12)
+            self._drop_overlay.setGeometry(r)
+            self._drop_overlay.raise_()
+            self._drop_overlay.show()
+        else:
+            e.ignore()
+
+    def dragMoveEvent(self, e) -> None:
+        e.acceptProposedAction()
+
+    def dragLeaveEvent(self, e) -> None:
+        self._drop_overlay.hide()
+
+    def dropEvent(self, e) -> None:
+        self._drop_overlay.hide()
+        files = self._dropped_files(e)
+        if files:
+            e.acceptProposedAction()
+            self.import_files(files)
+
     # --- 메뉴 / 단축키 ---
     def _show_menu(self) -> None:
         m = QMenu(self)
@@ -184,6 +277,7 @@ class MainWindow(QWidget):
             m.addSeparator()
         if self.record_page.is_recording:
             m.addAction(tr("menu.compact"), self._enter_compact_mode)
+        m.addAction(tr("menu.import"), self.choose_import_files)
         m.addAction(tr("menu.settings"), self._settings)
         m.addAction(tr("menu.reload_mics"), self._reload_mics)
         m.addAction(tr("menu.open_data"), lambda: os.startfile(data_dir()))

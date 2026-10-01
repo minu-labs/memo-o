@@ -12,6 +12,7 @@ memo_o/                 앱 소스
   wavfile.py            강제 종료에도 복구 가능한 WAV 기록기
   stt.py                faster-whisper 래퍼 (로컬 모델만 사용, CUDA 자동 감지)
   transcription.py      백그라운드 변환 큐 + 시작 시 복구
+  importer.py           음성/영상 파일 가져오기 (데이터 폴더로 복사 후 변환 대기열에 추가)
   db.py                 SQLite (recordings, segments, settings)
   export.py             txt / srt 내보내기
   ui/                   PySide6 화면 (메인 / 목록 / 상세, UI_SPEC.md 기준)
@@ -49,7 +50,7 @@ scripts/wpy -m scripts.ui_smoke      # 샘플 데이터로 전 화면 캡처 →
 | 항목 | 경로 |
 | --- | --- |
 | DB | `%LOCALAPPDATA%\MemoO\memo-o.db` |
-| 녹음 | `%LOCALAPPDATA%\MemoO\recordings\*.wav` |
+| 녹음 | `%LOCALAPPDATA%\MemoO\recordings\*.wav` (가져온 파일은 원래 확장자 유지) |
 | 로그 | `%LOCALAPPDATA%\MemoO\memo-o.log` |
 | 기본 모델 (small) | `<설치 폴더>\models\small` |
 | 추가 모델 (medium 등) | `%LOCALAPPDATA%\MemoO\models\<size>` |
