@@ -53,6 +53,14 @@ _STRINGS: dict[str, dict[str, str]] = {
     # --- 마이크 / 녹음기 ---
     "mic.default": {"ko": "기본 마이크", "en": "Default microphone"},
     "mic.interrupted": {"ko": "마이크 입력이 중단되었습니다.", "en": "Microphone input was interrupted."},
+    "system.unavailable": {
+        "ko": "PC 소리를 녹음할 수 없어 마이크만 녹음합니다.",
+        "en": "Couldn't capture PC audio. Recording the microphone only.",
+    },
+    "system.interrupted": {
+        "ko": "PC 소리 녹음이 중단되어 마이크만 계속 녹음합니다.",
+        "en": "PC audio capture stopped. Continuing with the microphone only.",
+    },
 
     # --- 텍스트 변환 ---
     "stt.model_missing": {
@@ -108,6 +116,14 @@ _STRINGS: dict[str, dict[str, str]] = {
     "rec.start": {"ko": "녹음 시작", "en": "Start recording"},
     "rec.stop": {"ko": "녹음 중지", "en": "Stop recording"},
     "rec.mic": {"ko": "마이크", "en": "Mic"},
+    "rec.system_audio": {"ko": "PC 소리도 함께 녹음", "en": "Also record PC audio"},
+    "rec.system_audio_tip": {
+        "ko": "스피커·헤드폰으로 나오는 소리(온라인 회의 상대방 목소리, 영상 등)를 마이크와 함께 녹음합니다.\n"
+              "스피커를 쓰면 마이크에도 소리가 들어가 겹칠 수 있어 헤드폰을 권장합니다.",
+        "en": "Records the sound playing through your speakers or headphones "
+              "(people in an online meeting, videos, etc.) together with the microphone.\n"
+              "Headphones are recommended, since speaker sound can also be picked up by the microphone.",
+    },
     "rec.recent": {"ko": "최근 녹음", "en": "Recent recordings"},
     "rec.view_all": {"ko": "녹음 목록 전체보기 >", "en": "View all recordings >"},
     "rec.empty": {
@@ -227,11 +243,13 @@ _STRINGS: dict[str, dict[str, str]] = {
         "ko": "<b>녹음 관련 법적 고지</b><br>"
               "통신비밀보호법에 따라 <b>본인이 참여한 대화</b>의 녹음은 상대방의 동의 없이도 가능하지만, "
               "<b>본인이 참여하지 않은 타인 간의 대화를 몰래 녹음하는 것은 불법</b>이며 형사처벌 대상입니다. "
+              "온라인 회의·통화 등 PC 소리를 녹음할 때도 같습니다. "
               "녹음 기능의 사용과 그 결과에 대한 책임은 사용자에게 있습니다.",
         "en": "<b>Legal notice on recording</b><br>"
               "Laws on recording conversations differ by country and region. Some places allow you to record "
               "a conversation you take part in, while others require <b>everyone's consent</b>. "
               "<b>Secretly recording conversations you are not part of is illegal in most places.</b> "
+              "This also applies to PC audio such as online meetings and calls. "
               "Check the laws where you live before recording. "
               "You are responsible for how you use the recording feature and its results.",
     },

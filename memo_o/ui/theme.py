@@ -91,6 +91,8 @@ QPushButton#Link:hover {{ color: {ACCENT_HOVER}; text-decoration: underline; }}
 
 QLabel#BtnLabel {{ font-size: 13px; font-weight: 600; }}
 QLabel#Meta {{ color: {TEXT_SUB}; font-size: 12px; }}
+QCheckBox#SystemAudio {{ color: {TEXT_SUB}; font-size: 12px; }}
+QCheckBox#SystemAudio:disabled {{ color: {TEXT_MUTED}; }}
 
 QComboBox {{
     background: {CARD}; border: 1px solid {BORDER}; border-radius: 8px;

@@ -3,7 +3,7 @@ from datetime import datetime
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
-    QComboBox, QFrame, QHBoxLayout, QInputDialog, QLabel, QMessageBox, QSizePolicy, QVBoxLayout,
+    QCheckBox, QComboBox, QFrame, QHBoxLayout, QInputDialog, QLabel, QMessageBox, QSizePolicy, QVBoxLayout,
 )
 
 from .. import db as dbm
@@ -69,6 +69,14 @@ class RecordPage:
         mic.addWidget(self.mic_combo)
         mic.addStretch(1)
         root.addLayout(mic)
+        root.addSpacing(-8)
+
+        self.system_check = QCheckBox(tr("rec.system_audio"))
+        self.system_check.setObjectName("SystemAudio")
+        self.system_check.setToolTip(tr("rec.system_audio_tip"))
+        self.system_check.setChecked(ctx.db.get_setting("system_audio") == "1")
+        self.system_check.toggled.connect(lambda on: ctx.db.set_setting("system_audio", "1" if on else "0"))
+        root.addWidget(self.system_check, 0, Qt.AlignHCenter)
 
         level_row = QHBoxLayout()
         level_row.setContentsMargins(40, 0, 40, 0)
@@ -173,7 +181,7 @@ class RecordPage:
             path = recordings_dir() / f"{now:%Y%m%d_%H%M%S}_{n}.wav"
             n += 1
         device = self.mic_combo.currentData()
-        rec = Recorder(path, device)
+        rec = Recorder(path, device, system_audio=self.system_check.isChecked())
         try:
             rec.start()
         except Exception as e:
@@ -189,6 +197,8 @@ class RecordPage:
         self.btn_label.setText(tr("rec.stop"))
         self.status_lbl.setText(tr("rec.status_recording"))
         self.mic_combo.setEnabled(False)
+        self.system_check.setEnabled(False)
+        self._shown_warning = None
         self.level_meter.set_level(0.0)
         self.level_meter.show()
         self.timer.start()
@@ -225,6 +235,7 @@ class RecordPage:
         self.status_lbl.setText(tr("rec.status_idle"))
         self.time_lbl.setText(tr("rec.time", t="00:00:00"))
         self.mic_combo.setEnabled(True)
+        self.system_check.setEnabled(True)
         self.level_meter.hide()
 
     def _tick(self) -> None:
@@ -233,5 +244,8 @@ class RecordPage:
         self.time_lbl.setText(tr("rec.time", t=fmt_hms(self.recorder.elapsed)))
         self.ctx.update_recording_time(self.recorder.elapsed)
         self.level_meter.set_level(self.recorder.level)
+        if self.recorder.warning and self.recorder.warning != self._shown_warning:
+            self._shown_warning = self.recorder.warning
+            self.ctx.toast(self.recorder.warning, 4000)
         if self.recorder.failed:
             self.stop(ask_title=False)

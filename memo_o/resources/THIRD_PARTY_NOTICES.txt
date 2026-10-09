@@ -33,6 +33,14 @@ PortAudio — MIT License
 Copyright (c) 1999-2011 Ross Bencina and Phil Burk
 http://www.portaudio.com
 
+SoundCard — BSD 3-Clause License
+Copyright (c) 2016 Bastian Bechtold
+https://github.com/bastibe/SoundCard
+
+CFFI — MIT License
+Copyright (c) Armin Rigo, Maciej Fijalkowski
+https://github.com/python-cffi/cffi
+
 NumPy — BSD 3-Clause License
 Copyright (c) 2005-2024, NumPy Developers
 https://numpy.org

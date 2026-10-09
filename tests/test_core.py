@@ -1,6 +1,7 @@
 import wave
 from datetime import datetime
 
+import numpy as np
 import pytest
 
 from memo_o import db as dbm
@@ -174,3 +175,39 @@ def test_import_audio_rejects_bad_files(db, tmp_path):
             import_audio(db, p)
     assert db.count() == 0
     assert set(recordings_dir().iterdir()) == before  # 실패한 파일은 복사되지 않는다
+
+
+def test_loopback_buffer_waits_until_primed():
+    from memo_o.recorder import LoopbackBuffer
+    b = LoopbackBuffer(1000, target=0.1, max_lag=0.5)  # target 100, max 500 샘플
+    b.push(np.ones(50, np.float32))
+    assert not b.pull(10).any()  # 목표 지연만큼 쌓이기 전엔 무음
+    b.push(np.ones(50, np.float32))
+    assert b.pull(10).all()
+
+
+def test_loopback_buffer_underrun_pads_and_reprimes():
+    from memo_o.recorder import LoopbackBuffer
+    b = LoopbackBuffer(1000, target=0.1, max_lag=0.5)
+    b.push(np.ones(100, np.float32))
+    out = b.pull(150)
+    assert out[:100].all() and not out[100:].any()
+    b.push(np.ones(50, np.float32))
+    assert not b.pull(10).any()  # 다시 target 까지 기다린다
+
+
+def test_loopback_buffer_overrun_drops_to_target():
+    from memo_o.recorder import LoopbackBuffer
+    b = LoopbackBuffer(1000, target=0.1, max_lag=0.5)
+    b.push(np.zeros(500, np.float32))
+    b.push(np.arange(1, 11, dtype=np.float32))  # 510 > 500 → 최근 100개만 남김
+    out = b.pull(100)
+    assert out[-10:].tolist() == list(range(1, 11))
+
+
+def test_mix_clips_to_int16():
+    from memo_o.recorder import mix
+    mic = np.array([30000, -30000, 100], np.int16)
+    out = mix(mic, np.array([0.5, -0.5, 0.0], np.float32))
+    assert out.dtype == np.int16
+    assert out.tolist() == [32767, -32768, 100]
