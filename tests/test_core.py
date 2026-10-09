@@ -211,3 +211,18 @@ def test_mix_clips_to_int16():
     out = mix(mic, np.array([0.5, -0.5, 0.0], np.float32))
     assert out.dtype == np.int16
     assert out.tolist() == [32767, -32768, 100]
+
+
+def test_find_model_in_extracted_zip_folder(tmp_path, monkeypatch):
+    from memo_o import stt
+    monkeypatch.setattr(stt, "model_search_dirs", lambda: [tmp_path / "app", tmp_path / "user"])
+    assert stt.find_model("medium") is None
+    # Windows "압축 풀기"가 만든 한 단계 더 깊은 폴더도 찾는다
+    nested = tmp_path / "user" / "memo-o-model-medium" / "medium"
+    nested.mkdir(parents=True)
+    (nested / "model.bin").write_bytes(b"x")
+    assert stt.find_model("medium") == nested
+    direct = tmp_path / "user" / "medium"
+    direct.mkdir()
+    (direct / "model.bin").write_bytes(b"x")
+    assert stt.find_model("medium") == direct

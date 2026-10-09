@@ -1,16 +1,17 @@
 import os
 from dataclasses import dataclass
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
-    QButtonGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QPushButton,
-    QRadioButton, QTextBrowser, QVBoxLayout,
+    QButtonGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QMessageBox,
+    QPushButton, QRadioButton, QTextBrowser, QVBoxLayout,
 )
 
 from .. import __version__, i18n
 from ..i18n import UI_LANG_NAMES, tr
 from ..paths import data_dir, resource_dir
-from ..stt import DEFAULT_SPEECH_LANG, MODEL_SIZES, SPEECH_LANGUAGES, available_models
+from ..stt import DEFAULT_SPEECH_LANG, MEDIUM_MODEL_URL, MODEL_SIZES, SPEECH_LANGUAGES, available_models
 from . import theme
 
 
@@ -72,6 +73,44 @@ def about_dialog(parent) -> None:
     d.exec()
 
 
+def medium_model_dialog(parent) -> bool:
+    """medium 모델을 직접 받아 넣는 방법 안내. 설치가 확인되면 True."""
+    user_models = data_dir() / "models"
+    d, lay = _base(parent, tr("medium.title"), 420)
+    lay.addWidget(_para(tr("medium.intro")))
+
+    def step(text: str, button: str, action) -> None:
+        lay.addWidget(_para(text))
+        btn = QPushButton(button)
+        btn.clicked.connect(action)
+        row = QHBoxLayout()
+        row.setContentsMargins(16, 0, 0, 0)
+        row.addWidget(btn)
+        row.addStretch(1)
+        lay.addLayout(row)
+
+    step(tr("medium.step1"), tr("medium.download"), lambda: QDesktopServices.openUrl(QUrl(MEDIUM_MODEL_URL)))
+    step(tr("medium.step2", path=user_models), tr("settings.open_models"), lambda: os.startfile(user_models))
+    lay.addWidget(_para(tr("medium.step3")))
+
+    bb = QDialogButtonBox()
+    check = bb.addButton(tr("medium.check"), QDialogButtonBox.AcceptRole)
+    check.setObjectName("Primary")
+    bb.addButton(QDialogButtonBox.Close)
+    bb.rejected.connect(d.reject)
+
+    def verify() -> None:
+        if "medium" in available_models():
+            QMessageBox.information(d, tr("medium.title"), tr("medium.found"))
+            d.accept()
+        else:
+            QMessageBox.warning(d, tr("medium.title"), tr("medium.not_found", path=user_models))
+
+    check.clicked.connect(verify)
+    lay.addWidget(bb)
+    return d.exec() == QDialog.Accepted
+
+
 @dataclass
 class SettingsChanges:
     stt: bool = False            # 모델/음성 언어 변경 → 다음 변환부터 적용
@@ -111,6 +150,7 @@ def settings_dialog(parent, db, stt_device: str) -> SettingsChanges:
     lay.addWidget(_para(tr("settings.model")))
     group = QButtonGroup(d)
     desc = {"small": tr("settings.model_small"), "medium": tr("settings.model_medium")}
+    radios = {}
     for size in MODEL_SIZES:
         rb = QRadioButton(desc[size] + ("" if size in models else tr("settings.model_missing")))
         rb.setEnabled(size in models)
@@ -118,18 +158,26 @@ def settings_dialog(parent, db, stt_device: str) -> SettingsChanges:
         rb.setProperty("modelSize", size)
         group.addButton(rb)
         lay.addWidget(rb)
+        radios[size] = rb
 
-    user_models = data_dir() / "models"
     device = "GPU (CUDA)" if stt_device == "cuda" else "CPU"
-    lay.addWidget(_para(
-        f"<span style='color:{theme.TEXT_SUB}'>{tr('settings.model_help', path=user_models, device=device)}</span>"
-    ))
-    open_btn = QPushButton(tr("settings.open_models"))
-    open_btn.clicked.connect(lambda: os.startfile(user_models))
-    row = QHBoxLayout()
-    row.addWidget(open_btn)
-    row.addStretch(1)
-    lay.addLayout(row)
+    lay.addWidget(_para(f"<span style='color:{theme.TEXT_SUB}'>{tr('settings.model_help', device=device)}</span>"))
+    if "medium" not in models:
+        get_btn = QPushButton(tr("settings.get_medium"))
+        row = QHBoxLayout()
+        row.addWidget(get_btn)
+        row.addStretch(1)
+        lay.addLayout(row)
+
+        def get_medium() -> None:
+            if medium_model_dialog(d):
+                rb = radios["medium"]
+                rb.setText(desc["medium"])
+                rb.setEnabled(True)
+                rb.setChecked(True)
+                get_btn.hide()
+
+        get_btn.clicked.connect(get_medium)
 
     lay.addWidget(_para(tr("settings.theme")))
     current_theme = db.get_setting("theme", "light")

@@ -67,7 +67,7 @@ powershell -ExecutionPolicy Bypass -File build.ps1 -SkipInstaller
 ```
 
 - `dist\memo-o\memo-o.exe` — 설치 없이 실행 가능한 폴더 (모델 포함)
-- `dist\installer\memo-o-setup-1.2.0.exe` — 설치 파일. 기본으로 바탕화면 아이콘을 만든다. 관리자 권한 없이 사용자 폴더에 설치할 수도 있다.
+- `dist\installer\memo-o-setup-1.2.1.exe` — 설치 파일. 기본으로 바탕화면 아이콘을 만든다. 관리자 권한 없이 사용자 폴더에 설치할 수도 있다.
 
 WSL에서는 `scripts/wbuild` (네트워크 경로의 .ps1 실행 제한을 우회).
 

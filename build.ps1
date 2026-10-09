@@ -11,9 +11,16 @@ Write-Host "== 1/3 PyInstaller" -ForegroundColor Cyan
 & $py -m PyInstaller memo-o.spec --noconfirm --clean --workpath $work --distpath dist
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller 실패" }
 
-Write-Host "== 2/3 모델 동봉 (models\small)" -ForegroundColor Cyan
+Write-Host "== 2/3 모델 동봉 (models\small → int8)" -ForegroundColor Cyan
+# 설치 파일 용량을 줄이기 위해 small 모델 가중치를 int8로 저장해 넣는다 (484MB → 245MB).
+# CPU에서는 원래 int8로 연산하므로 결과가 같고, GPU에서는 불러올 때 float16으로 변환된다.
 $model = Join-Path $root "models\small\model.bin"
-if (-not (Test-Path $model)) { & $py -m scripts.download_model small }
+$q = Join-Path $root "models\small-int8"
+if (-not (Test-Path (Join-Path $q "model.bin"))) {
+    if (-not (Test-Path $model)) { & $py -m scripts.download_model small }
+    & $py -m scripts.quantize_model models\small models\small-int8
+    if ($LASTEXITCODE -ne 0) { throw "모델 int8 변환 실패" }
+}
 $dest = Join-Path $root "dist\memo-o\models\small"
 New-Item -ItemType Directory -Force $dest | Out-Null
 # \\wsl.localhost 브리지로 큰 파일(model.bin, ~500MB)을 Windows 쪽에서 복사하면
@@ -23,13 +30,13 @@ New-Item -ItemType Directory -Force $dest | Out-Null
 if ($root -match '^\\\\wsl(\.localhost|\$)\\([^\\]+)\\(.+)$') {
     $wslDistro = $Matches[2]
     $wslPath = "/" + ($Matches[3] -replace '\\', '/')
-    & wsl.exe -d $wslDistro -- bash -lc "cp -f '$wslPath/models/small/'*.bin '$wslPath/models/small/'*.json '$wslPath/models/small/'*.txt '$wslPath/dist/memo-o/models/small/'"
+    & wsl.exe -d $wslDistro -- bash -lc "cp -f '$wslPath/models/small-int8/'*.bin '$wslPath/models/small-int8/'*.json '$wslPath/models/small-int8/'*.txt '$wslPath/dist/memo-o/models/small/'"
     if ($LASTEXITCODE -ne 0) { throw "모델 파일 복사 실패 (wsl cp, exit $LASTEXITCODE)" }
 } else {
-    robocopy (Join-Path $root "models\small") $dest /J /R:3 /W:2 /NFL /NDL /NJH /NJS
+    robocopy $q $dest /J /R:3 /W:2 /NFL /NDL /NJH /NJS
     if ($LASTEXITCODE -ge 8) { throw "모델 파일 복사 실패 (robocopy 종료 코드 $LASTEXITCODE)" }
 }
-$srcHash = (Get-FileHash (Join-Path $root "models\small\model.bin") -Algorithm SHA256).Hash
+$srcHash = (Get-FileHash (Join-Path $q "model.bin") -Algorithm SHA256).Hash
 $dstHash = (Get-FileHash (Join-Path $dest "model.bin") -Algorithm SHA256).Hash
 if ($srcHash -ne $dstHash) { throw "모델 파일 복사 후 체크섬 불일치 (파일 손상)" }
 

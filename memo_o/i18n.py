@@ -295,15 +295,46 @@ _STRINGS: dict[str, dict[str, str]] = {
     },
     "settings.model_missing": {"ko": "  (모델 없음)", "en": "  (not installed)"},
     "settings.model_help": {
-        "ko": "medium 모델은 용량이 커서 기본 설치에 포함되지 않습니다. "
-              "다운로드 페이지에서 받은 모델 폴더(medium)를 아래 위치에 넣으면 선택할 수 있습니다.<br>"
-              "{path}<br><br>변환 장치: {device}",
-        "en": "The medium model is large, so it isn't included in the default install. "
-              "Put the model folder (medium) from the download page in the folder below to select it.<br>"
-              "{path}<br><br>Device: {device}",
+        "ko": "medium 모델은 용량이 커서(약 1.4GB) 기본 설치에 포함되지 않습니다. 필요하면 따로 받아 추가할 수 있습니다.<br>"
+              "변환 장치: {device}",
+        "en": "The medium model is large (about 1.4GB), so it isn't included in the default install. "
+              "You can download and add it separately.<br>Device: {device}",
     },
+    "settings.get_medium": {"ko": "medium 모델 받기...", "en": "Get the medium model..."},
     "settings.open_models": {"ko": "모델 폴더 열기", "en": "Open model folder"},
     "settings.theme": {"ko": "<b>테마</b>", "en": "<b>Theme</b>"},
+
+    # --- medium 모델 설치 안내 ---
+    "medium.title": {"ko": "medium 모델 설치", "en": "Install the medium model"},
+    "medium.intro": {
+        "ko": "medium 모델은 small보다 정확하지만 2~3배 느리고 메모리를 더 사용합니다. "
+              "사양이 높은 PC나 NVIDIA GPU가 있는 PC에 권장합니다. 아래 순서대로 설치하세요.",
+        "en": "The medium model is more accurate than small, but 2–3× slower and uses more memory. "
+              "It is recommended for high-end PCs or PCs with an NVIDIA GPU. Follow the steps below.",
+    },
+    "medium.step1": {
+        "ko": "<b>1.</b> 아래 버튼을 누르면 브라우저에서 <b>memo-o-model-medium.zip</b>(약 1.4GB) 다운로드가 시작됩니다.",
+        "en": "<b>1.</b> Click the button below to download <b>memo-o-model-medium.zip</b> (about 1.4GB) "
+              "in your browser.",
+    },
+    "medium.download": {"ko": "다운로드 (약 1.4GB)", "en": "Download (about 1.4GB)"},
+    "medium.step2": {
+        "ko": "<b>2.</b> 받은 zip 파일의 압축을 아래 폴더에 풉니다. "
+              "<b>models\\medium\\model.bin</b> 이 되면 됩니다.<br>{path}",
+        "en": "<b>2.</b> Extract the zip file into the folder below, so that you end up with "
+              "<b>models\\medium\\model.bin</b>.<br>{path}",
+    },
+    "medium.step3": {
+        "ko": "<b>3.</b> [설치 확인]을 누르면 medium 모델을 선택할 수 있습니다. 다음 변환부터 적용됩니다.",
+        "en": "<b>3.</b> Click [Check installation] to select the medium model. It applies from the next transcription.",
+    },
+    "medium.check": {"ko": "설치 확인", "en": "Check installation"},
+    "medium.found": {"ko": "medium 모델을 찾았습니다.", "en": "Found the medium model."},
+    "medium.not_found": {
+        "ko": "아직 medium 모델을 찾을 수 없습니다.\n압축을 푼 위치를 확인해주세요.\n\n찾는 위치: {path}\\medium\\model.bin",
+        "en": "The medium model wasn't found yet.\nCheck where you extracted the zip.\n\n"
+              "Expected: {path}\\medium\\model.bin",
+    },
     "settings.theme_light": {"ko": "라이트 (밝은 배경)", "en": "Light"},
     "settings.theme_dark": {"ko": "다크 (어두운 배경)", "en": "Dark"},
 }

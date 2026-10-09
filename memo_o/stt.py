@@ -11,6 +11,8 @@ log = logging.getLogger(__name__)
 
 MODEL_SIZES = ("small", "medium")
 DEFAULT_MODEL = "small"
+# 설치 파일에 포함되지 않는 medium 모델. 사용자가 브라우저로 직접 받아 데이터 폴더에 압축을 푼다.
+MEDIUM_MODEL_URL = "https://github.com/minu-labs/memo-o/releases/download/v1.2.0/memo-o-model-medium.zip"
 
 # 설정에서 고를 수 있는 음성 언어 (Whisper 언어 코드 → 자국어 표기). "auto" = 자동 감지.
 SPEECH_LANGUAGES = {
@@ -40,6 +42,11 @@ def find_model(size: str) -> Path | None:
         d = base / size
         if (d / "model.bin").is_file():
             return d
+    # Windows "압축 풀기"는 zip 이름으로 폴더를 하나 더 만든다 (models\memo-o-model-medium\medium).
+    for base in model_search_dirs():
+        for d in sorted(base.glob(f"*/{size}")):
+            if (d / "model.bin").is_file():
+                return d
     return None
 
 
